@@ -1,3 +1,3 @@
-module Straw2Cash
+module github.com/DAbharat/Straw2Cash
 
 go 1.26.4
