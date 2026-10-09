@@ -1,0 +1,7 @@
+{
+  "name": "Straw2Cash",
+  "description": "Role-based agricultural straw marketplace connecting farmers, buyers, and balers with AI residue estimation, pricing rules, and fire-risk mitigation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
