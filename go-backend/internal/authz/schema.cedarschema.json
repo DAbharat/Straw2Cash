@@ -1,0 +1,90 @@
+{
+    "": {
+        "entityTypes": {
+            "User": {
+                "memberOfTypes": [],
+                "shape": {
+                    "type": "Record",
+                    "attributes": {
+                        "role": {
+                            "type": "String",
+                            "required": true
+                        }
+                    }
+                }
+            },
+            "Profile": {
+                "memberOfTypes": [],
+                "shape": {
+                    "type": "Record",
+                    "attributes": {
+                        "owner": {
+                            "type": "Entity",
+                            "name": "User",
+                            "required": true
+                        }
+                    }
+                }
+            },
+            "Listing": {
+                "memberOfTypes": [],
+                "shape": {
+                    "type": "Record",
+                    "attributes": {
+                        "owner": {
+                            "type": "Entity",
+                            "name": "User",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        },
+        "actions": {
+            "ReadProfile": {
+                "memberOfTypes": [],
+                "appliesTo": {
+                    "principalTypes": ["User"],
+                    "resourceTypes": ["Profile"],
+                    "context": {
+                        "type": "Record",
+                        "attributes": {}
+                    }
+                }
+            },
+            "UpdateProfile": {
+                "memberOfTypes": [],
+                "appliesTo": {
+                    "principalTypes": ["User"],
+                    "resourceTypes": ["Profile"],
+                    "context": {
+                        "type": "Record",
+                        "attributes": {}
+                    }
+                }
+            },
+            "CreateListing": {
+                "memberOfTypes": [],
+                "appliesTo": {
+                    "principalTypes": ["User"],
+                    "resourceTypes": ["Listing"],
+                    "context": {
+                        "type": "Record",
+                        "attributes": {}
+                    }
+                }
+            },
+            "ManageListing": {
+                "memberOfTypes": [],
+                "appliesTo": {
+                    "principalTypes": ["User"],
+                    "resourceTypes": ["Listing"],
+                    "context": {
+                        "type": "Record",
+                        "attributes": {}
+                    }
+                }
+            }
+        }
+    }
+}
