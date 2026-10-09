@@ -239,6 +239,14 @@ If you see the user's profile → **you're ready**.
 Full test suite → [09 — Demo Script](09-demo-script.md)
 
 ---
+### CORS
+
+The service allows all origins (`*`) for the hackathon — this enables the frontend to run on any port (React `:3000`, Vite `:5173`) without configuration.
+
+For production, change `CorsConfig.java` to use an explicit allowlist:
+```java
+config.setAllowedOriginPatterns(List.of("https://straw2cash.com"));
+```
 
 ## Next Steps
 

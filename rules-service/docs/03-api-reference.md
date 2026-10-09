@@ -18,7 +18,37 @@ No auth required.
 ```json
 {"status":"UP","service":"rules-service","timestamp":"2026-10-09T..."}
 ```
+## Status
 
+### `GET /api/v1/status`
+
+No auth required. Richer health check with DB table status and record counts.
+
+**Response 200:**
+```json
+{
+  "status": "UP",
+  "service": "rules-service",
+  "version": "0.0.1-SNAPSHOT",
+  "timestamp": "2026-10-09T...",
+  "tables": {
+    "price_rules": "OK",
+    "quotes": "OK",
+    "contracts": "OK",
+    "settlements": "OK",
+    "users": "OK"
+  },
+  "counts": {
+    "contracts": 3,
+    "settlements": 3
+  }
+}
+```
+
+**Use cases:**
+- Demo — proves the whole backend is wired up
+- Monitoring — quick health check with live data
+- Debugging — confirms DynamoDB is reachable
 ---
 
 ## Auth
