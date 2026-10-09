@@ -1,0 +1,29 @@
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# IDE
+../.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
