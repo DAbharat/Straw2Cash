@@ -61,3 +61,7 @@ func GetUserFromContext(ctx context.Context) (string, bool) {
 	}
 	return userID, true
 }
+
+func SetUserToContext(ctx context.Context, userID string) context.Context {
+	return context.WithValue(ctx, userIDKey, userID)
+}

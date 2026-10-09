@@ -42,8 +42,6 @@ func (s *listingService) CreateListing(ctx context.Context, farmerID string, req
 		return dto.ListingResponse{}, ErrUnauthorized
 	}
 
-
-
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
 		return dto.ListingResponse{}, ErrUnauthorized
@@ -61,7 +59,7 @@ func (s *listingService) CreateListing(ctx context.Context, farmerID string, req
 		return dto.ListingResponse{}, ErrForbidden
 	}
 
-	_, err = s.farmerRepo.GetProfileByID(ctx, farmerID)
+	farmerProfile, err := s.farmerRepo.GetProfileByUserID(ctx, principalID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.ListingResponse{}, fmt.Errorf("%w: farmer profile not found", ErrForbidden)
@@ -86,7 +84,9 @@ func (s *listingService) CreateListing(ctx context.Context, farmerID string, req
 		return dto.ListingResponse{}, fmt.Errorf("%w: available_until must be after available_from", ErrValidation)
 	}
 
-	listing, err := s.listingRepo.CreateListing(ctx, farmerID, req.CropType, req.QuantityKg, hDate, aFrom, aUntil, req.PickupLatitude, req.PickupLongitude, req.PricePerKg, req.MoisturePercentage)
+	farmerProfileID := pgUUIDToStr(farmerProfile.ID.Bytes)
+
+	listing, err := s.listingRepo.CreateListing(ctx, farmerProfileID, req.CropType, req.QuantityKg, hDate, aFrom, aUntil, req.PickupLatitude, req.PickupLongitude, req.PricePerKg, req.MoisturePercentage)
 	if err != nil {
 		if errors.Is(err, repository.ErrCheckViolation) {
 			return dto.ListingResponse{}, fmt.Errorf("%w: invalid constraint", ErrValidation)
@@ -136,8 +136,6 @@ func (s *listingService) UpdateListingStatus(ctx context.Context, id string, req
 	if !ok {
 		return dto.ListingResponse{}, ErrUnauthorized
 	}
-
-
 
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {

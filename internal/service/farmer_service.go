@@ -68,8 +68,6 @@ func (s *farmerService) GetProfile(ctx context.Context, id string) (dto.FarmerPr
 		return dto.FarmerProfileResponse{}, ErrUnauthorized
 	}
 
-
-
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
 		return dto.FarmerProfileResponse{}, ErrUnauthorized
@@ -115,8 +113,6 @@ func (s *farmerService) UpdateProfile(ctx context.Context, userID string, req dt
 	if !ok {
 		return dto.FarmerProfileResponse{}, ErrUnauthorized
 	}
-
-
 
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
@@ -195,8 +191,6 @@ func mapFarmerResponse(profile sqlc.FarmerProfile) dto.FarmerProfileResponse {
 		UpdatedAt:     profile.UpdatedAt.Time,
 	}
 }
-
-
 
 func fromPgNumeric(n pgtype.Numeric) float64 {
 	if !n.Valid {

@@ -86,5 +86,3 @@ func (r *userRepository) DeleteUser(ctx context.Context, id string) error {
 	}
 	return handleError(r.queries.DeleteUser(ctx, uuid))
 }
-
-

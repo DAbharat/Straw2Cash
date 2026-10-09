@@ -7,7 +7,7 @@ type RegisterRequest struct {
 	Email    string `json:"email,omitempty" validate:"omitempty,email"`
 	Phone    string `json:"phone" validate:"required"`
 	Password string `json:"password" validate:"required,min=8"`
-	Role     string `json:"role" validate:"required,oneof=FARMER BUYER BALER ADMIN"`
+	Role     string `json:"role" validate:"required,oneof=FARMER BUYER BALER"`
 }
 
 type LoginRequest struct {

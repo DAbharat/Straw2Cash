@@ -144,3 +144,73 @@ func ActionCreateListing() cedar.EntityUID {
 func ActionManageListing() cedar.EntityUID {
 	return cedar.NewEntityUID("Action", cedar.String("ManageListing"))
 }
+
+func BuildRequirementEntity(reqID, ownerUserID string) (cedar.EntityUID, types.EntityMap) {
+	uid := cedar.NewEntityUID("Requirement", cedar.String(reqID))
+	ownerUID := cedar.NewEntityUID("User", cedar.String(ownerUserID))
+
+	entities := types.EntityMap{
+		uid: {
+			UID:     uid,
+			Parents: cedar.NewEntityUIDSet(),
+			Attributes: cedar.NewRecord(types.RecordMap{
+				"owner": ownerUID,
+			}),
+			Tags: cedar.NewRecord(nil),
+		},
+		ownerUID: {
+			UID:        ownerUID,
+			Parents:    cedar.NewEntityUIDSet(),
+			Attributes: cedar.NewRecord(nil),
+			Tags:       cedar.NewRecord(nil),
+		},
+	}
+	return uid, entities
+}
+
+func BuildMatchEntity(matchID, listingOwnerUserID, reqOwnerUserID string) (cedar.EntityUID, types.EntityMap) {
+	uid := cedar.NewEntityUID("Match", cedar.String(matchID))
+	lOwnerUID := cedar.NewEntityUID("User", cedar.String(listingOwnerUserID))
+	rOwnerUID := cedar.NewEntityUID("User", cedar.String(reqOwnerUserID))
+
+	entities := types.EntityMap{
+		uid: {
+			UID:     uid,
+			Parents: cedar.NewEntityUIDSet(),
+			Attributes: cedar.NewRecord(types.RecordMap{
+				"listingOwner": lOwnerUID,
+				"reqOwner":     rOwnerUID,
+			}),
+			Tags: cedar.NewRecord(nil),
+		},
+		lOwnerUID: {
+			UID:        lOwnerUID,
+			Parents:    cedar.NewEntityUIDSet(),
+			Attributes: cedar.NewRecord(nil),
+			Tags:       cedar.NewRecord(nil),
+		},
+		rOwnerUID: {
+			UID:        rOwnerUID,
+			Parents:    cedar.NewEntityUIDSet(),
+			Attributes: cedar.NewRecord(nil),
+			Tags:       cedar.NewRecord(nil),
+		},
+	}
+	return uid, entities
+}
+
+func ActionCreateRequirement() cedar.EntityUID {
+	return cedar.NewEntityUID("Action", cedar.String("CreateRequirement"))
+}
+
+func ActionManageRequirement() cedar.EntityUID {
+	return cedar.NewEntityUID("Action", cedar.String("ManageRequirement"))
+}
+
+func ActionCreateMatch() cedar.EntityUID {
+	return cedar.NewEntityUID("Action", cedar.String("CreateMatch"))
+}
+
+func ActionManageMatch() cedar.EntityUID {
+	return cedar.NewEntityUID("Action", cedar.String("ManageMatch"))
+}

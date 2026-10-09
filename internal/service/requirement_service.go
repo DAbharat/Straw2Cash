@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DAbharat/Straw2Cash/internal/authz"
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
+	"github.com/DAbharat/Straw2Cash/internal/middleware"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
 )
 
@@ -19,28 +21,54 @@ type RequirementService interface {
 }
 
 type requirementService struct {
-	reqRepo   repository.RequirementRepository
-	buyerRepo repository.BuyerRepository
+	reqRepo    repository.RequirementRepository
+	buyerRepo  repository.BuyerRepository
+	userRepo   repository.UserRepository
+	authorizer *authz.Authorizer
 }
 
-func NewRequirementService(reqRepo repository.RequirementRepository, buyerRepo repository.BuyerRepository) RequirementService {
+func NewRequirementService(reqRepo repository.RequirementRepository, buyerRepo repository.BuyerRepository, userRepo repository.UserRepository, authorizer *authz.Authorizer) RequirementService {
 	return &requirementService{
-		reqRepo:   reqRepo,
-		buyerRepo: buyerRepo,
+		reqRepo:    reqRepo,
+		buyerRepo:  buyerRepo,
+		userRepo:   userRepo,
+		authorizer: authorizer,
 	}
 }
 
-func (s *requirementService) CreateRequirement(ctx context.Context, buyerID string, req dto.CreateRequirementRequest) (dto.RequirementResponse, error) {
+func (s *requirementService) CreateRequirement(ctx context.Context, userID string, req dto.CreateRequirementRequest) (dto.RequirementResponse, error) {
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.RequirementResponse{}, ErrUnauthorized
+	}
 
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.RequirementResponse{}, ErrUnauthorized
+	}
 
-	// Verify buyer exists
-	_, err := s.buyerRepo.GetProfileByID(ctx, buyerID)
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildRequirementEntity("dummy", principalID) // Dummy ID for creation
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionCreateRequirement(), rUID, entities)
+	if err != nil {
+		return dto.RequirementResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.RequirementResponse{}, ErrForbidden
+	}
+
+	// Verify buyer exists using user ID
+	buyerProfile, err := s.buyerRepo.GetProfileByUserID(ctx, principalID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.RequirementResponse{}, fmt.Errorf("%w: buyer profile not found", ErrForbidden)
 		}
 		return dto.RequirementResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
+
+	buyerProfileID := pgUUIDToStr(buyerProfile.ID.Bytes)
 
 	rFrom, err := time.Parse("2006-01-02", req.RequiredFrom)
 	if err != nil {
@@ -55,7 +83,7 @@ func (s *requirementService) CreateRequirement(ctx context.Context, buyerID stri
 		return dto.RequirementResponse{}, fmt.Errorf("%w: required_until must be after required_from", ErrValidation)
 	}
 
-	requirement, err := s.reqRepo.CreateRequirement(ctx, buyerID, req.CropType, req.QuantityRequiredKg, rFrom, rUntil, req.MaxPricePerKg, req.PreferredRadiusKm)
+	requirement, err := s.reqRepo.CreateRequirement(ctx, buyerProfileID, req.CropType, req.QuantityRequiredKg, rFrom, rUntil, req.MaxPricePerKg, req.PreferredRadiusKm)
 	if err != nil {
 		if errors.Is(err, repository.ErrCheckViolation) {
 			return dto.RequirementResponse{}, fmt.Errorf("%w: invalid constraint", ErrValidation)
@@ -101,12 +129,38 @@ func (s *requirementService) ListRequirements(ctx context.Context, status string
 }
 
 func (s *requirementService) UpdateRequirementStatus(ctx context.Context, id string, req dto.UpdateRequirementStatusRequest) (dto.RequirementResponse, error) {
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.RequirementResponse{}, ErrUnauthorized
+	}
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.RequirementResponse{}, ErrUnauthorized
+	}
+
 	existing, err := s.reqRepo.GetRequirementByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.RequirementResponse{}, ErrNotFound
 		}
 		return dto.RequirementResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	buyerProfile, err := s.buyerRepo.GetProfileByID(ctx, pgUUIDToStr(existing.BuyerID.Bytes))
+	if err != nil {
+		return dto.RequirementResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildRequirementEntity(id, pgUUIDToStr(buyerProfile.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionManageRequirement(), rUID, entities)
+	if err != nil {
+		return dto.RequirementResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.RequirementResponse{}, ErrForbidden
 	}
 
 	if existing.Status == sqlc.RequirementStatusCANCELLED || existing.Status == sqlc.RequirementStatusFULFILLED {

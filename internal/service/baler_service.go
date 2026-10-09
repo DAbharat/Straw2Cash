@@ -63,8 +63,6 @@ func (s *balerService) GetProfile(ctx context.Context, id string) (dto.BalerProf
 		return dto.BalerProfileResponse{}, ErrUnauthorized
 	}
 
-
-
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
 		return dto.BalerProfileResponse{}, ErrUnauthorized
@@ -110,8 +108,6 @@ func (s *balerService) UpdateProfile(ctx context.Context, userID string, req dto
 	if !ok {
 		return dto.BalerProfileResponse{}, ErrUnauthorized
 	}
-
-
 
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {

@@ -66,8 +66,6 @@ func (s *buyerService) GetProfile(ctx context.Context, id string) (dto.BuyerProf
 		return dto.BuyerProfileResponse{}, ErrUnauthorized
 	}
 
-
-
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
 		return dto.BuyerProfileResponse{}, ErrUnauthorized
@@ -113,8 +111,6 @@ func (s *buyerService) UpdateProfile(ctx context.Context, userID string, req dto
 	if !ok {
 		return dto.BuyerProfileResponse{}, ErrUnauthorized
 	}
-
-
 
 	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
