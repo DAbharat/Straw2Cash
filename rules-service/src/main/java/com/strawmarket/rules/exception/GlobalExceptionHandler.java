@@ -35,4 +35,12 @@ public class GlobalExceptionHandler {
                 "timestamp", java.time.Instant.now().toString()
         ));
     }
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<java.util.Map<String, Object>> handleAuth(AuthException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(java.util.Map.of(
+                "error", "AUTH_ERROR",
+                "message", ex.getMessage(),
+                "timestamp", java.time.Instant.now().toString()
+        ));
+    }
 }

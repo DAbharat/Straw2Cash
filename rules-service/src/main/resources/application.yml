@@ -23,3 +23,7 @@ logging:
   level:
     com.strawmarket: DEBUG
     software.amazon.awssdk: INFO
+
+jwt:
+  secret: "change-this-secret-in-prod-use-a-32-byte-minimum-string-1234567890"
+  expiration-seconds: 86400

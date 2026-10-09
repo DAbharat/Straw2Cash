@@ -71,6 +71,7 @@ public class SettlementService {
         s.setSimulated(true);
         s.setSettledAt(now.toString());
         settlementRepository.save(s);
+        s.setTonnes(contract.getTonnes());
 
         // Mark contract as COMPLETED
         contract.setStatus(ContractStatus.COMPLETED.name());

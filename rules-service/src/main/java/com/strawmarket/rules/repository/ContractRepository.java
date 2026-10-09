@@ -39,4 +39,8 @@ public class ContractRepository {
                 .flatMap(page -> page.items().stream())
                 .collect(Collectors.toList());
     }
+    public java.util.List<ContractEntity> findAll() {
+        return table.scan().items().stream()
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

@@ -21,6 +21,10 @@ public class SettlementEntity {
     private String status;
     private boolean simulated;
     private String settledAt;
+    private BigDecimal tonnes;
+
+    public BigDecimal getTonnes() { return tonnes; }
+    public void setTonnes(BigDecimal tonnes) { this.tonnes = tonnes; }
 
     @DynamoDbPartitionKey
     public String getSettlementId() { return settlementId; }

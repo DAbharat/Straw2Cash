@@ -1,4 +1,8 @@
 package com.strawmarket.rules.model.enums;
 
-public class Role {
+public enum Role {
+    FARMER,
+    BALER_OPERATOR,
+    BUYER,
+    AUTHORITY
 }

@@ -39,4 +39,7 @@ public class SettlementRepository {
                 .flatMap(page -> page.items().stream())
                 .collect(Collectors.toList());
     }
+    public List<SettlementEntity> findAll() {
+        return table.scan().items().stream().collect(Collectors.toList());
+    }
 }
