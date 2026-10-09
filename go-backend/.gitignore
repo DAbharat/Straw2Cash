@@ -1,0 +1,75 @@
+# =========================
+# Node / Frontend
+# =========================
+node_modules/
+build/
+dist/
+coverage/
+
+# =========================
+# Java / JVM
+# =========================
+**/target/
+*.class
+
+# =========================
+# Go
+# =========================
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Coverage reports
+*.out
+coverage.out
+
+# Go Workspace
+go.work
+go.work.sum
+
+# Vendor (Uncomment if you don't commit vendor/)
+# vendor/
+
+# =========================
+# Environment & Secrets
+# =========================
+.env*
+!.env.example
+.env.local
+
+# =========================
+# IDEs & Editors
+# =========================
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.iml
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# Temporary & Local Files
+# =========================
+tmp/
+docker-compose.override.yml
+benchmarks/
+numbers.txt
