@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/DAbharat/Straw2Cash/internal/authz"
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
+	"github.com/DAbharat/Straw2Cash/internal/middleware"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -21,23 +23,20 @@ type FarmerService interface {
 type farmerService struct {
 	farmerRepo repository.FarmerRepository
 	userRepo   repository.UserRepository
+	authorizer *authz.Authorizer
 }
 
-func NewFarmerService(farmerRepo repository.FarmerRepository, userRepo repository.UserRepository) FarmerService {
+func NewFarmerService(farmerRepo repository.FarmerRepository, userRepo repository.UserRepository, authorizer *authz.Authorizer) FarmerService {
 	return &farmerService{
 		farmerRepo: farmerRepo,
 		userRepo:   userRepo,
+		authorizer: authorizer,
 	}
 }
 
 func (s *farmerService) CreateProfile(ctx context.Context, userID string, req dto.CreateFarmerProfileRequest) (dto.FarmerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
 	// Verify user exists and is a farmer
-	user, err := s.userRepo.GetByID(ctx, uUUID)
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.FarmerProfileResponse{}, fmt.Errorf("%w: user not found", ErrNotFound)
@@ -49,17 +48,7 @@ func (s *farmerService) CreateProfile(ctx context.Context, userID string, req dt
 		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: user is not a farmer", ErrForbidden)
 	}
 
-	arg := sqlc.CreateFarmerProfileParams{
-		UserID:        uUUID,
-		Village:       req.Village,
-		District:      req.District,
-		State:         req.State,
-		Latitude:      toPgNumeric(req.Latitude),
-		Longitude:     toPgNumeric(req.Longitude),
-		LandAreaAcres: toPgNumeric(req.LandAreaAcres),
-	}
-
-	profile, err := s.farmerRepo.Create(ctx, arg)
+	profile, err := s.farmerRepo.CreateProfile(ctx, userID, req.Village, req.District, req.State, req.Latitude, req.Longitude, req.LandAreaAcres)
 	if err != nil {
 		if errors.Is(err, repository.ErrDuplicateProfile) {
 			return dto.FarmerProfileResponse{}, fmt.Errorf("%w: farmer profile already exists", ErrConflict)
@@ -74,12 +63,19 @@ func (s *farmerService) CreateProfile(ctx context.Context, userID string, req dt
 }
 
 func (s *farmerService) GetProfile(ctx context.Context, id string) (dto.FarmerProfileResponse, error) {
-	pUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: invalid profile ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.FarmerProfileResponse{}, ErrUnauthorized
 	}
 
-	profile, err := s.farmerRepo.GetByID(ctx, pUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.FarmerProfileResponse{}, ErrUnauthorized
+	}
+
+	profile, err := s.farmerRepo.GetProfileByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.FarmerProfileResponse{}, ErrNotFound
@@ -87,16 +83,23 @@ func (s *farmerService) GetProfile(ctx context.Context, id string) (dto.FarmerPr
 		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildProfileEntity(id, pgUUIDToStr(profile.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionReadProfile(), rUID, entities)
+	if err != nil {
+		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.FarmerProfileResponse{}, ErrForbidden
+	}
+
 	return mapFarmerResponse(profile), nil
 }
 
 func (s *farmerService) GetProfileByUserID(ctx context.Context, userID string) (dto.FarmerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
-	profile, err := s.farmerRepo.GetByUserID(ctx, uUUID)
+	profile, err := s.farmerRepo.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.FarmerProfileResponse{}, ErrNotFound
@@ -108,13 +111,20 @@ func (s *farmerService) GetProfileByUserID(ctx context.Context, userID string) (
 }
 
 func (s *farmerService) UpdateProfile(ctx context.Context, userID string, req dto.UpdateFarmerProfileRequest) (dto.FarmerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.FarmerProfileResponse{}, ErrUnauthorized
+	}
+
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
 	if err != nil {
-		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
+		return dto.FarmerProfileResponse{}, ErrUnauthorized
 	}
 
 	// Fetch existing to ensure they own it and exists
-	existing, err := s.farmerRepo.GetByUserID(ctx, uUUID)
+	existing, err := s.farmerRepo.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.FarmerProfileResponse{}, ErrNotFound
@@ -122,42 +132,45 @@ func (s *farmerService) UpdateProfile(ctx context.Context, userID string, req dt
 		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
-	arg := sqlc.UpdateFarmerProfileParams{
-		ID: existing.ID,
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildProfileEntity(pgUUIDToStr(existing.ID.Bytes), pgUUIDToStr(existing.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionUpdateProfile(), rUID, entities)
+	if err != nil {
+		return dto.FarmerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
+	if !allowed {
+		return dto.FarmerProfileResponse{}, ErrForbidden
+	}
+
+	village := existing.Village
+	district := existing.District
+	state := existing.State
+	lat := fromPgNumeric(existing.Latitude)
+	lon := fromPgNumeric(existing.Longitude)
+	land := fromPgNumeric(existing.LandAreaAcres)
 
 	if req.Village != nil {
-		arg.Village = *req.Village
-	} else {
-		arg.Village = existing.Village
+		village = *req.Village
 	}
 	if req.District != nil {
-		arg.District = *req.District
-	} else {
-		arg.District = existing.District
+		district = *req.District
 	}
 	if req.State != nil {
-		arg.State = *req.State
-	} else {
-		arg.State = existing.State
+		state = *req.State
 	}
 	if req.Latitude != nil {
-		arg.Latitude = toPgNumeric(*req.Latitude)
-	} else {
-		arg.Latitude = existing.Latitude
+		lat = *req.Latitude
 	}
 	if req.Longitude != nil {
-		arg.Longitude = toPgNumeric(*req.Longitude)
-	} else {
-		arg.Longitude = existing.Longitude
+		lon = *req.Longitude
 	}
 	if req.LandAreaAcres != nil {
-		arg.LandAreaAcres = toPgNumeric(*req.LandAreaAcres)
-	} else {
-		arg.LandAreaAcres = existing.LandAreaAcres
+		land = *req.LandAreaAcres
 	}
 
-	profile, err := s.farmerRepo.Update(ctx, arg)
+	profile, err := s.farmerRepo.UpdateProfile(ctx, pgUUIDToStr(existing.ID.Bytes), village, district, state, lat, lon, land)
 	if err != nil {
 		if errors.Is(err, repository.ErrCheckViolation) {
 			return dto.FarmerProfileResponse{}, fmt.Errorf("%w: invalid values (constraints failed)", ErrValidation)
@@ -170,8 +183,8 @@ func (s *farmerService) UpdateProfile(ctx context.Context, userID string, req dt
 
 func mapFarmerResponse(profile sqlc.FarmerProfile) dto.FarmerProfileResponse {
 	return dto.FarmerProfileResponse{
-		ID:            pgUUIDToStr(profile.ID),
-		UserID:        pgUUIDToStr(profile.UserID),
+		ID:            pgUUIDToStr(profile.ID.Bytes),
+		UserID:        pgUUIDToStr(profile.UserID.Bytes),
 		Village:       profile.Village,
 		District:      profile.District,
 		State:         profile.State,
@@ -183,18 +196,7 @@ func mapFarmerResponse(profile sqlc.FarmerProfile) dto.FarmerProfileResponse {
 	}
 }
 
-// Float Numeric Helpers
 
-func toPgNumeric(f float64) pgtype.Numeric {
-	var n pgtype.Numeric
-	// Just use fmt parsing for simplicity
-	err := n.Scan(fmt.Sprintf("%f", f))
-	if err != nil {
-		// fallback to 0 if invalid
-		n.Valid = false
-	}
-	return n
-}
 
 func fromPgNumeric(n pgtype.Numeric) float64 {
 	if !n.Valid {

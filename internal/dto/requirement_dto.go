@@ -3,23 +3,23 @@ package dto
 import "time"
 
 type CreateRequirementRequest struct {
-	CropType             string   `json:"crop_type" validate:"required"`
-	QuantityRequiredKg   float64  `json:"quantity_required_kg" validate:"required,gt=0"`
-	MaxPricePerKg        *float64 `json:"max_price_per_kg,omitempty" validate:"omitempty,gte=0"`
-	PreferredRadiusKm    *float64 `json:"preferred_radius_km,omitempty" validate:"omitempty,gt=0"`
-	RequiredFrom         string   `json:"required_from" validate:"required"`
-	RequiredUntil        string   `json:"required_until" validate:"required"`
+	CropType           string   `json:"crop_type" validate:"required"`
+	QuantityRequiredKg float64  `json:"quantity_required_kg" validate:"required,gt=0"`
+	MaxPricePerKg      *float64 `json:"max_price_per_kg,omitempty" validate:"omitempty,gte=0"`
+	PreferredRadiusKm  *float64 `json:"preferred_radius_km,omitempty" validate:"omitempty,gt=0"`
+	RequiredFrom       string   `json:"required_from" validate:"required"`
+	RequiredUntil      string   `json:"required_until" validate:"required"`
 }
 
 type UpdateRequirementRequest struct {
-	CropType             *string  `json:"crop_type,omitempty"`
-	QuantityRequiredKg   *float64 `json:"quantity_required_kg,omitempty" validate:"omitempty,gt=0"`
-	RemainingQuantityKg  *float64 `json:"remaining_quantity_kg,omitempty" validate:"omitempty,gte=0"`
-	MaxPricePerKg        *float64 `json:"max_price_per_kg,omitempty" validate:"omitempty,gte=0"`
-	PreferredRadiusKm    *float64 `json:"preferred_radius_km,omitempty" validate:"omitempty,gt=0"`
-	RequiredFrom         *string  `json:"required_from,omitempty"`
-	RequiredUntil        *string  `json:"required_until,omitempty"`
-	Status               *string  `json:"status,omitempty" validate:"omitempty,oneof=OPEN PARTIALLY_FULFILLED FULFILLED CANCELLED"`
+	CropType            *string  `json:"crop_type,omitempty"`
+	QuantityRequiredKg  *float64 `json:"quantity_required_kg,omitempty" validate:"omitempty,gt=0"`
+	RemainingQuantityKg *float64 `json:"remaining_quantity_kg,omitempty" validate:"omitempty,gte=0"`
+	MaxPricePerKg       *float64 `json:"max_price_per_kg,omitempty" validate:"omitempty,gte=0"`
+	PreferredRadiusKm   *float64 `json:"preferred_radius_km,omitempty" validate:"omitempty,gt=0"`
+	RequiredFrom        *string  `json:"required_from,omitempty"`
+	RequiredUntil       *string  `json:"required_until,omitempty"`
+	Status              *string  `json:"status,omitempty" validate:"omitempty,oneof=OPEN PARTIALLY_FULFILLED FULFILLED CANCELLED"`
 }
 
 type UpdateRequirementStatusRequest struct {

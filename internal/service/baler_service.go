@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/DAbharat/Straw2Cash/internal/authz"
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
+	"github.com/DAbharat/Straw2Cash/internal/middleware"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
 )
 
@@ -18,24 +20,21 @@ type BalerService interface {
 }
 
 type balerService struct {
-	balerRepo repository.BalerRepository
-	userRepo  repository.UserRepository
+	balerRepo  repository.BalerRepository
+	userRepo   repository.UserRepository
+	authorizer *authz.Authorizer
 }
 
-func NewBalerService(balerRepo repository.BalerRepository, userRepo repository.UserRepository) BalerService {
+func NewBalerService(balerRepo repository.BalerRepository, userRepo repository.UserRepository, authorizer *authz.Authorizer) BalerService {
 	return &balerService{
-		balerRepo: balerRepo,
-		userRepo:  userRepo,
+		balerRepo:  balerRepo,
+		userRepo:   userRepo,
+		authorizer: authorizer,
 	}
 }
 
 func (s *balerService) CreateProfile(ctx context.Context, userID string, req dto.CreateBalerProfileRequest) (dto.BalerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.BalerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
-	user, err := s.userRepo.GetByID(ctx, uUUID)
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BalerProfileResponse{}, fmt.Errorf("%w: user not found", ErrNotFound)
@@ -47,17 +46,7 @@ func (s *balerService) CreateProfile(ctx context.Context, userID string, req dto
 		return dto.BalerProfileResponse{}, fmt.Errorf("%w: user is not a baler", ErrForbidden)
 	}
 
-	arg := sqlc.CreateBalerProfileParams{
-		UserID:           uUUID,
-		OrganizationName: toPgText(req.OrganizationName),
-		Phone:            toPgText(req.Phone),
-		VehicleDetails:   toPgText(req.VehicleDetails),
-		ServiceArea:      req.ServiceArea,
-		District:         req.District,
-		State:            req.State,
-	}
-
-	profile, err := s.balerRepo.Create(ctx, arg)
+	profile, err := s.balerRepo.CreateProfile(ctx, userID, req.OrganizationName, req.Phone, req.VehicleDetails, req.ServiceArea, req.District, req.State)
 	if err != nil {
 		if errors.Is(err, repository.ErrDuplicateProfile) {
 			return dto.BalerProfileResponse{}, fmt.Errorf("%w: baler profile already exists", ErrConflict)
@@ -69,12 +58,19 @@ func (s *balerService) CreateProfile(ctx context.Context, userID string, req dto
 }
 
 func (s *balerService) GetProfile(ctx context.Context, id string) (dto.BalerProfileResponse, error) {
-	pUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.BalerProfileResponse{}, fmt.Errorf("%w: invalid profile ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.BalerProfileResponse{}, ErrUnauthorized
 	}
 
-	profile, err := s.balerRepo.GetByID(ctx, pUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.BalerProfileResponse{}, ErrUnauthorized
+	}
+
+	profile, err := s.balerRepo.GetProfileByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BalerProfileResponse{}, ErrNotFound
@@ -82,16 +78,23 @@ func (s *balerService) GetProfile(ctx context.Context, id string) (dto.BalerProf
 		return dto.BalerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildProfileEntity(id, pgUUIDToStr(profile.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionReadProfile(), rUID, entities)
+	if err != nil {
+		return dto.BalerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.BalerProfileResponse{}, ErrForbidden
+	}
+
 	return mapBalerResponse(profile), nil
 }
 
 func (s *balerService) GetProfileByUserID(ctx context.Context, userID string) (dto.BalerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.BalerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
-	profile, err := s.balerRepo.GetByUserID(ctx, uUUID)
+	profile, err := s.balerRepo.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BalerProfileResponse{}, ErrNotFound
@@ -103,12 +106,19 @@ func (s *balerService) GetProfileByUserID(ctx context.Context, userID string) (d
 }
 
 func (s *balerService) UpdateProfile(ctx context.Context, userID string, req dto.UpdateBalerProfileRequest) (dto.BalerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.BalerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.BalerProfileResponse{}, ErrUnauthorized
 	}
 
-	existing, err := s.balerRepo.GetByUserID(ctx, uUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.BalerProfileResponse{}, ErrUnauthorized
+	}
+
+	existing, err := s.balerRepo.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BalerProfileResponse{}, ErrNotFound
@@ -116,36 +126,33 @@ func (s *balerService) UpdateProfile(ctx context.Context, userID string, req dto
 		return dto.BalerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
-	arg := sqlc.UpdateBalerProfileParams{
-		ID: existing.ID,
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildProfileEntity(pgUUIDToStr(existing.ID.Bytes), pgUUIDToStr(existing.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionUpdateProfile(), rUID, entities)
+	if err != nil {
+		return dto.BalerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.BalerProfileResponse{}, ErrForbidden
 	}
 
-	if req.OrganizationName != nil {
-		arg.OrganizationName = toPgText(*req.OrganizationName)
-	}
-	if req.Phone != nil {
-		arg.Phone = toPgText(*req.Phone)
-	}
-	if req.VehicleDetails != nil {
-		arg.VehicleDetails = toPgText(*req.VehicleDetails)
-	}
+	area := existing.ServiceArea
+	district := existing.District
+	state := existing.State
+
 	if req.ServiceArea != nil {
-		arg.ServiceArea = *req.ServiceArea
-	} else {
-		arg.ServiceArea = existing.ServiceArea
+		area = *req.ServiceArea
 	}
 	if req.District != nil {
-		arg.District = *req.District
-	} else {
-		arg.District = existing.District
+		district = *req.District
 	}
 	if req.State != nil {
-		arg.State = *req.State
-	} else {
-		arg.State = existing.State
+		state = *req.State
 	}
 
-	profile, err := s.balerRepo.Update(ctx, arg)
+	profile, err := s.balerRepo.UpdateProfile(ctx, pgUUIDToStr(existing.ID.Bytes), req.OrganizationName, req.Phone, req.VehicleDetails, area, district, state)
 	if err != nil {
 		return dto.BalerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
@@ -155,8 +162,8 @@ func (s *balerService) UpdateProfile(ctx context.Context, userID string, req dto
 
 func mapBalerResponse(profile sqlc.BalerProfile) dto.BalerProfileResponse {
 	return dto.BalerProfileResponse{
-		ID:               pgUUIDToStr(profile.ID),
-		UserID:           pgUUIDToStr(profile.UserID),
+		ID:               pgUUIDToStr(profile.ID.Bytes),
+		UserID:           pgUUIDToStr(profile.UserID.Bytes),
 		OrganizationName: profile.OrganizationName.String,
 		Phone:            profile.Phone.String,
 		VehicleDetails:   profile.VehicleDetails.String,

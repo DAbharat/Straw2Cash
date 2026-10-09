@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/DAbharat/Straw2Cash/internal/authz"
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
+	"github.com/DAbharat/Straw2Cash/internal/middleware"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type ListingService interface {
@@ -22,23 +23,45 @@ type ListingService interface {
 type listingService struct {
 	listingRepo repository.ListingRepository
 	farmerRepo  repository.FarmerRepository
+	userRepo    repository.UserRepository
+	authorizer  *authz.Authorizer
 }
 
-func NewListingService(listingRepo repository.ListingRepository, farmerRepo repository.FarmerRepository) ListingService {
+func NewListingService(listingRepo repository.ListingRepository, farmerRepo repository.FarmerRepository, userRepo repository.UserRepository, authorizer *authz.Authorizer) ListingService {
 	return &listingService{
 		listingRepo: listingRepo,
 		farmerRepo:  farmerRepo,
+		userRepo:    userRepo,
+		authorizer:  authorizer,
 	}
 }
 
 func (s *listingService) CreateListing(ctx context.Context, farmerID string, req dto.CreateListingRequest) (dto.ListingResponse, error) {
-	fUUID, err := parseUUID(farmerID)
-	if err != nil {
-		return dto.ListingResponse{}, fmt.Errorf("%w: invalid farmer ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.ListingResponse{}, ErrUnauthorized
 	}
 
-	// Verify farmer exists
-	_, err = s.farmerRepo.GetByID(ctx, fUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.ListingResponse{}, ErrUnauthorized
+	}
+
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildListingEntity("dummy", principalID) // Dummy ID for creation
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionCreateListing(), rUID, entities)
+	if err != nil {
+		return dto.ListingResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.ListingResponse{}, ErrForbidden
+	}
+
+	_, err = s.farmerRepo.GetProfileByID(ctx, farmerID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.ListingResponse{}, fmt.Errorf("%w: farmer profile not found", ErrForbidden)
@@ -63,26 +86,7 @@ func (s *listingService) CreateListing(ctx context.Context, farmerID string, req
 		return dto.ListingResponse{}, fmt.Errorf("%w: available_until must be after available_from", ErrValidation)
 	}
 
-	arg := sqlc.CreateStrawListingParams{
-		FarmerID:        fUUID,
-		CropType:        req.CropType,
-		QuantityKg:      toPgNumeric(req.QuantityKg),
-		HarvestDate:     pgtype.Date{Time: hDate, Valid: true},
-		AvailableFrom:   pgtype.Date{Time: aFrom, Valid: true},
-		AvailableUntil:  pgtype.Date{Time: aUntil, Valid: true},
-		PickupLatitude:  toPgNumeric(req.PickupLatitude),
-		PickupLongitude: toPgNumeric(req.PickupLongitude),
-		Status:          sqlc.ListingStatusAVAILABLE,
-	}
-
-	if req.PricePerKg != nil {
-		arg.PricePerKg = toPgNumeric(*req.PricePerKg)
-	}
-	if req.MoisturePercentage != nil {
-		arg.MoisturePercentage = toPgNumeric(*req.MoisturePercentage)
-	}
-
-	listing, err := s.listingRepo.Create(ctx, arg)
+	listing, err := s.listingRepo.CreateListing(ctx, farmerID, req.CropType, req.QuantityKg, hDate, aFrom, aUntil, req.PickupLatitude, req.PickupLongitude, req.PricePerKg, req.MoisturePercentage)
 	if err != nil {
 		if errors.Is(err, repository.ErrCheckViolation) {
 			return dto.ListingResponse{}, fmt.Errorf("%w: invalid constraint", ErrValidation)
@@ -94,12 +98,7 @@ func (s *listingService) CreateListing(ctx context.Context, farmerID string, req
 }
 
 func (s *listingService) GetListing(ctx context.Context, id string) (dto.ListingResponse, error) {
-	lUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.ListingResponse{}, fmt.Errorf("%w: invalid listing ID", ErrValidation)
-	}
-
-	listing, err := s.listingRepo.GetByID(ctx, lUUID)
+	listing, err := s.listingRepo.GetListingByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.ListingResponse{}, ErrNotFound
@@ -115,18 +114,9 @@ func (s *listingService) ListListings(ctx context.Context, status string, limit,
 	var err error
 
 	if status != "" {
-		arg := sqlc.ListStrawListingsByStatusParams{
-			Status: sqlc.ListingStatus(status),
-			Limit:  limit,
-			Offset: offset,
-		}
-		listings, err = s.listingRepo.ListByStatus(ctx, arg)
+		listings, err = s.listingRepo.ListListingsByStatus(ctx, status, limit, offset)
 	} else {
-		arg := sqlc.ListStrawListingsParams{
-			Limit:  limit,
-			Offset: offset,
-		}
-		listings, err = s.listingRepo.List(ctx, arg)
+		listings, err = s.listingRepo.ListListings(ctx, limit, offset)
 	}
 
 	if err != nil {
@@ -142,14 +132,19 @@ func (s *listingService) ListListings(ctx context.Context, status string, limit,
 }
 
 func (s *listingService) UpdateListingStatus(ctx context.Context, id string, req dto.UpdateListingStatusRequest) (dto.ListingResponse, error) {
-	lUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.ListingResponse{}, fmt.Errorf("%w: invalid listing ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.ListingResponse{}, ErrUnauthorized
 	}
 
-	// This is a simple status update, in reality state transitions should be checked
-	// E.g., CANCELLED -> AVAILABLE might not be allowed.
-	existing, err := s.listingRepo.GetByID(ctx, lUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.ListingResponse{}, ErrUnauthorized
+	}
+
+	existing, err := s.listingRepo.GetListingByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.ListingResponse{}, ErrNotFound
@@ -157,16 +152,28 @@ func (s *listingService) UpdateListingStatus(ctx context.Context, id string, req
 		return dto.ListingResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
+	farmerProfile, err := s.farmerRepo.GetProfileByID(ctx, pgUUIDToStr(existing.FarmerID.Bytes))
+	if err != nil {
+		return dto.ListingResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildListingEntity(id, pgUUIDToStr(farmerProfile.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionManageListing(), rUID, entities)
+	if err != nil {
+		return dto.ListingResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.ListingResponse{}, ErrForbidden
+	}
+
 	if existing.Status == sqlc.ListingStatusCANCELLED || existing.Status == sqlc.ListingStatusCOLLECTED {
 		return dto.ListingResponse{}, fmt.Errorf("%w: cannot change status of completed/cancelled listing", ErrInvalidState)
 	}
 
-	arg := sqlc.UpdateStrawListingStatusParams{
-		ID:     lUUID,
-		Status: sqlc.ListingStatus(req.Status),
-	}
-
-	listing, err := s.listingRepo.UpdateStatus(ctx, arg)
+	listing, err := s.listingRepo.UpdateListingStatus(ctx, id, req.Status)
 	if err != nil {
 		return dto.ListingResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
@@ -176,8 +183,8 @@ func (s *listingService) UpdateListingStatus(ctx context.Context, id string, req
 
 func mapListingResponse(listing sqlc.StrawListing) dto.ListingResponse {
 	res := dto.ListingResponse{
-		ID:              pgUUIDToStr(listing.ID),
-		FarmerID:        pgUUIDToStr(listing.FarmerID),
+		ID:              pgUUIDToStr(listing.ID.Bytes),
+		FarmerID:        pgUUIDToStr(listing.FarmerID.Bytes),
 		CropType:        listing.CropType,
 		QuantityKg:      fromPgNumeric(listing.QuantityKg),
 		HarvestDate:     listing.HarvestDate.Time.Format("2006-01-02"),

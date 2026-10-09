@@ -15,72 +15,72 @@ import (
 
 // MockUserRepository implements repository.UserRepository for testing
 type MockUserRepository struct {
-	CreateFunc     func(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
-	GetByIDFunc    func(ctx context.Context, id pgtype.UUID) (sqlc.User, error)
-	GetByEmailFunc func(ctx context.Context, email pgtype.Text) (sqlc.User, error)
-	GetByPhoneFunc func(ctx context.Context, phone string) (sqlc.User, error)
-	ListFunc       func(ctx context.Context, arg sqlc.ListUsersParams) ([]sqlc.User, error)
-	UpdateFunc     func(ctx context.Context, arg sqlc.UpdateUserParams) (sqlc.User, error)
-	DeleteFunc     func(ctx context.Context, id pgtype.UUID) error
+	CreateUserFunc     func(ctx context.Context, name, email, phone, passwordHash, role string) (sqlc.User, error)
+	GetUserByIDFunc    func(ctx context.Context, id string) (sqlc.User, error)
+	GetUserByEmailFunc func(ctx context.Context, email string) (sqlc.User, error)
+	GetUserByPhoneFunc func(ctx context.Context, phone string) (sqlc.User, error)
+	ListUsersFunc      func(ctx context.Context, limit, offset int32) ([]sqlc.User, error)
+	UpdateUserFunc     func(ctx context.Context, id, name, email, phone, passwordHash, role string) (sqlc.User, error)
+	DeleteUserFunc     func(ctx context.Context, id string) error
 }
 
-func (m *MockUserRepository) Create(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
-	if m.CreateFunc != nil {
-		return m.CreateFunc(ctx, arg)
+func (m *MockUserRepository) CreateUser(ctx context.Context, name, email, phone, passwordHash, role string) (sqlc.User, error) {
+	if m.CreateUserFunc != nil {
+		return m.CreateUserFunc(ctx, name, email, phone, passwordHash, role)
 	}
 	return sqlc.User{}, nil
 }
 
-func (m *MockUserRepository) GetByID(ctx context.Context, id pgtype.UUID) (sqlc.User, error) {
-	if m.GetByIDFunc != nil {
-		return m.GetByIDFunc(ctx, id)
+func (m *MockUserRepository) GetUserByID(ctx context.Context, id string) (sqlc.User, error) {
+	if m.GetUserByIDFunc != nil {
+		return m.GetUserByIDFunc(ctx, id)
 	}
 	return sqlc.User{}, nil
 }
 
-func (m *MockUserRepository) GetByEmail(ctx context.Context, email pgtype.Text) (sqlc.User, error) {
-	if m.GetByEmailFunc != nil {
-		return m.GetByEmailFunc(ctx, email)
+func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (sqlc.User, error) {
+	if m.GetUserByEmailFunc != nil {
+		return m.GetUserByEmailFunc(ctx, email)
 	}
 	return sqlc.User{}, nil
 }
 
-func (m *MockUserRepository) GetByPhone(ctx context.Context, phone string) (sqlc.User, error) {
-	if m.GetByPhoneFunc != nil {
-		return m.GetByPhoneFunc(ctx, phone)
+func (m *MockUserRepository) GetUserByPhone(ctx context.Context, phone string) (sqlc.User, error) {
+	if m.GetUserByPhoneFunc != nil {
+		return m.GetUserByPhoneFunc(ctx, phone)
 	}
 	return sqlc.User{}, nil
 }
 
-func (m *MockUserRepository) List(ctx context.Context, arg sqlc.ListUsersParams) ([]sqlc.User, error) {
-	if m.ListFunc != nil {
-		return m.ListFunc(ctx, arg)
+func (m *MockUserRepository) ListUsers(ctx context.Context, limit, offset int32) ([]sqlc.User, error) {
+	if m.ListUsersFunc != nil {
+		return m.ListUsersFunc(ctx, limit, offset)
 	}
 	return nil, nil
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, arg sqlc.UpdateUserParams) (sqlc.User, error) {
-	if m.UpdateFunc != nil {
-		return m.UpdateFunc(ctx, arg)
+func (m *MockUserRepository) UpdateUser(ctx context.Context, id, name, email, phone, passwordHash, role string) (sqlc.User, error) {
+	if m.UpdateUserFunc != nil {
+		return m.UpdateUserFunc(ctx, id, name, email, phone, passwordHash, role)
 	}
 	return sqlc.User{}, nil
 }
 
-func (m *MockUserRepository) Delete(ctx context.Context, id pgtype.UUID) error {
-	if m.DeleteFunc != nil {
-		return m.DeleteFunc(ctx, id)
+func (m *MockUserRepository) DeleteUser(ctx context.Context, id string) error {
+	if m.DeleteUserFunc != nil {
+		return m.DeleteUserFunc(ctx, id)
 	}
 	return nil
 }
 
 func TestCreateUser_Success(t *testing.T) {
 	mockRepo := &MockUserRepository{
-		CreateFunc: func(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
+		CreateUserFunc: func(ctx context.Context, name, email, phone, passwordHash, role string) (sqlc.User, error) {
 			return sqlc.User{
-				Name:      arg.Name,
-				Email:     arg.Email,
-				Phone:     arg.Phone,
-				Role:      arg.Role,
+				Name:      name,
+				Email:     pgtype.Text{String: email, Valid: email != ""},
+				Phone:     phone,
+				Role:      sqlc.UserRole(role),
 				IsActive:  true,
 				CreatedAt: pgtype.Timestamptz{Time: time.Now(), Valid: true},
 			}, nil
@@ -125,7 +125,7 @@ func TestCreateUser_ValidationFailure(t *testing.T) {
 
 func TestCreateUser_Conflict(t *testing.T) {
 	mockRepo := &MockUserRepository{
-		CreateFunc: func(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
+		CreateUserFunc: func(ctx context.Context, name, email, phone, passwordHash, role string) (sqlc.User, error) {
 			return sqlc.User{}, repository.ErrDuplicatePhone
 		},
 	}

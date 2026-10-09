@@ -9,7 +9,6 @@ import (
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type RequirementService interface {
@@ -32,13 +31,10 @@ func NewRequirementService(reqRepo repository.RequirementRepository, buyerRepo r
 }
 
 func (s *requirementService) CreateRequirement(ctx context.Context, buyerID string, req dto.CreateRequirementRequest) (dto.RequirementResponse, error) {
-	bUUID, err := parseUUID(buyerID)
-	if err != nil {
-		return dto.RequirementResponse{}, fmt.Errorf("%w: invalid buyer ID", ErrValidation)
-	}
+
 
 	// Verify buyer exists
-	_, err = s.buyerRepo.GetByID(ctx, bUUID)
+	_, err := s.buyerRepo.GetProfileByID(ctx, buyerID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.RequirementResponse{}, fmt.Errorf("%w: buyer profile not found", ErrForbidden)
@@ -59,24 +55,7 @@ func (s *requirementService) CreateRequirement(ctx context.Context, buyerID stri
 		return dto.RequirementResponse{}, fmt.Errorf("%w: required_until must be after required_from", ErrValidation)
 	}
 
-	arg := sqlc.CreateBuyerRequirementParams{
-		BuyerID:             bUUID,
-		CropType:            req.CropType,
-		QuantityRequiredKg:  toPgNumeric(req.QuantityRequiredKg),
-		RemainingQuantityKg: toPgNumeric(req.QuantityRequiredKg), // Initially remaining == required
-		RequiredFrom:        pgtype.Date{Time: rFrom, Valid: true},
-		RequiredUntil:       pgtype.Date{Time: rUntil, Valid: true},
-		Status:              sqlc.RequirementStatusOPEN,
-	}
-
-	if req.MaxPricePerKg != nil {
-		arg.MaxPricePerKg = toPgNumeric(*req.MaxPricePerKg)
-	}
-	if req.PreferredRadiusKm != nil {
-		arg.PreferredRadiusKm = toPgNumeric(*req.PreferredRadiusKm)
-	}
-
-	requirement, err := s.reqRepo.Create(ctx, arg)
+	requirement, err := s.reqRepo.CreateRequirement(ctx, buyerID, req.CropType, req.QuantityRequiredKg, rFrom, rUntil, req.MaxPricePerKg, req.PreferredRadiusKm)
 	if err != nil {
 		if errors.Is(err, repository.ErrCheckViolation) {
 			return dto.RequirementResponse{}, fmt.Errorf("%w: invalid constraint", ErrValidation)
@@ -88,12 +67,7 @@ func (s *requirementService) CreateRequirement(ctx context.Context, buyerID stri
 }
 
 func (s *requirementService) GetRequirement(ctx context.Context, id string) (dto.RequirementResponse, error) {
-	rUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.RequirementResponse{}, fmt.Errorf("%w: invalid requirement ID", ErrValidation)
-	}
-
-	req, err := s.reqRepo.GetByID(ctx, rUUID)
+	req, err := s.reqRepo.GetRequirementByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.RequirementResponse{}, ErrNotFound
@@ -109,18 +83,9 @@ func (s *requirementService) ListRequirements(ctx context.Context, status string
 	var err error
 
 	if status != "" {
-		arg := sqlc.ListBuyerRequirementsByStatusParams{
-			Status: sqlc.RequirementStatus(status),
-			Limit:  limit,
-			Offset: offset,
-		}
-		reqs, err = s.reqRepo.ListByStatus(ctx, arg)
+		reqs, err = s.reqRepo.ListRequirementsByStatus(ctx, status, limit, offset)
 	} else {
-		arg := sqlc.ListBuyerRequirementsParams{
-			Limit:  limit,
-			Offset: offset,
-		}
-		reqs, err = s.reqRepo.List(ctx, arg)
+		reqs, err = s.reqRepo.ListRequirements(ctx, limit, offset)
 	}
 
 	if err != nil {
@@ -136,12 +101,7 @@ func (s *requirementService) ListRequirements(ctx context.Context, status string
 }
 
 func (s *requirementService) UpdateRequirementStatus(ctx context.Context, id string, req dto.UpdateRequirementStatusRequest) (dto.RequirementResponse, error) {
-	rUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.RequirementResponse{}, fmt.Errorf("%w: invalid requirement ID", ErrValidation)
-	}
-
-	existing, err := s.reqRepo.GetByID(ctx, rUUID)
+	existing, err := s.reqRepo.GetRequirementByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.RequirementResponse{}, ErrNotFound
@@ -153,12 +113,7 @@ func (s *requirementService) UpdateRequirementStatus(ctx context.Context, id str
 		return dto.RequirementResponse{}, fmt.Errorf("%w: cannot change status of completed/cancelled requirement", ErrInvalidState)
 	}
 
-	arg := sqlc.UpdateBuyerRequirementStatusParams{
-		ID:     rUUID,
-		Status: sqlc.RequirementStatus(req.Status),
-	}
-
-	requirement, err := s.reqRepo.UpdateStatus(ctx, arg)
+	requirement, err := s.reqRepo.UpdateRequirementStatus(ctx, id, req.Status)
 	if err != nil {
 		return dto.RequirementResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
@@ -168,8 +123,8 @@ func (s *requirementService) UpdateRequirementStatus(ctx context.Context, id str
 
 func mapRequirementResponse(req sqlc.BuyerRequirement) dto.RequirementResponse {
 	res := dto.RequirementResponse{
-		ID:                  pgUUIDToStr(req.ID),
-		BuyerID:             pgUUIDToStr(req.BuyerID),
+		ID:                  pgUUIDToStr(req.ID.Bytes),
+		BuyerID:             pgUUIDToStr(req.BuyerID.Bytes),
 		CropType:            req.CropType,
 		QuantityRequiredKg:  fromPgNumeric(req.QuantityRequiredKg),
 		RemainingQuantityKg: fromPgNumeric(req.RemainingQuantityKg),

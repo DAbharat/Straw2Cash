@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/DAbharat/Straw2Cash/internal/authz"
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
+	"github.com/DAbharat/Straw2Cash/internal/middleware"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
 )
 
@@ -18,24 +20,21 @@ type BuyerService interface {
 }
 
 type buyerService struct {
-	buyerRepo repository.BuyerRepository
-	userRepo  repository.UserRepository
+	buyerRepo  repository.BuyerRepository
+	userRepo   repository.UserRepository
+	authorizer *authz.Authorizer
 }
 
-func NewBuyerService(buyerRepo repository.BuyerRepository, userRepo repository.UserRepository) BuyerService {
+func NewBuyerService(buyerRepo repository.BuyerRepository, userRepo repository.UserRepository, authorizer *authz.Authorizer) BuyerService {
 	return &buyerService{
-		buyerRepo: buyerRepo,
-		userRepo:  userRepo,
+		buyerRepo:  buyerRepo,
+		userRepo:   userRepo,
+		authorizer: authorizer,
 	}
 }
 
 func (s *buyerService) CreateProfile(ctx context.Context, userID string, req dto.CreateBuyerProfileRequest) (dto.BuyerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
-	user, err := s.userRepo.GetByID(ctx, uUUID)
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BuyerProfileResponse{}, fmt.Errorf("%w: user not found", ErrNotFound)
@@ -47,18 +46,7 @@ func (s *buyerService) CreateProfile(ctx context.Context, userID string, req dto
 		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: user is not a buyer", ErrForbidden)
 	}
 
-	arg := sqlc.CreateBuyerProfileParams{
-		UserID:           uUUID,
-		OrganizationName: req.OrganizationName,
-		BuyerType:        sqlc.BuyerType(req.BuyerType),
-		Address:          req.Address,
-		District:         req.District,
-		State:            req.State,
-		Latitude:         toPgNumeric(req.Latitude),
-		Longitude:        toPgNumeric(req.Longitude),
-	}
-
-	profile, err := s.buyerRepo.Create(ctx, arg)
+	profile, err := s.buyerRepo.CreateProfile(ctx, userID, req.OrganizationName, req.BuyerType, req.Address, req.District, req.State, req.Latitude, req.Longitude)
 	if err != nil {
 		if errors.Is(err, repository.ErrDuplicateProfile) {
 			return dto.BuyerProfileResponse{}, fmt.Errorf("%w: buyer profile already exists", ErrConflict)
@@ -73,12 +61,19 @@ func (s *buyerService) CreateProfile(ctx context.Context, userID string, req dto
 }
 
 func (s *buyerService) GetProfile(ctx context.Context, id string) (dto.BuyerProfileResponse, error) {
-	pUUID, err := parseUUID(id)
-	if err != nil {
-		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: invalid profile ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.BuyerProfileResponse{}, ErrUnauthorized
 	}
 
-	profile, err := s.buyerRepo.GetByID(ctx, pUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.BuyerProfileResponse{}, ErrUnauthorized
+	}
+
+	profile, err := s.buyerRepo.GetProfileByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BuyerProfileResponse{}, ErrNotFound
@@ -86,16 +81,23 @@ func (s *buyerService) GetProfile(ctx context.Context, id string) (dto.BuyerProf
 		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildProfileEntity(id, pgUUIDToStr(profile.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionReadProfile(), rUID, entities)
+	if err != nil {
+		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+	if !allowed {
+		return dto.BuyerProfileResponse{}, ErrForbidden
+	}
+
 	return mapBuyerResponse(profile), nil
 }
 
 func (s *buyerService) GetProfileByUserID(ctx context.Context, userID string) (dto.BuyerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
-	profile, err := s.buyerRepo.GetByUserID(ctx, uUUID)
+	profile, err := s.buyerRepo.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BuyerProfileResponse{}, ErrNotFound
@@ -107,12 +109,19 @@ func (s *buyerService) GetProfileByUserID(ctx context.Context, userID string) (d
 }
 
 func (s *buyerService) UpdateProfile(ctx context.Context, userID string, req dto.UpdateBuyerProfileRequest) (dto.BuyerProfileResponse, error) {
-	uUUID, err := parseUUID(userID)
-	if err != nil {
-		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
+	principalID, ok := middleware.GetUserFromContext(ctx)
+	if !ok {
+		return dto.BuyerProfileResponse{}, ErrUnauthorized
 	}
 
-	existing, err := s.buyerRepo.GetByUserID(ctx, uUUID)
+
+
+	principalUser, err := s.userRepo.GetUserByID(ctx, principalID)
+	if err != nil {
+		return dto.BuyerProfileResponse{}, ErrUnauthorized
+	}
+
+	existing, err := s.buyerRepo.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {
 			return dto.BuyerProfileResponse{}, ErrNotFound
@@ -120,47 +129,49 @@ func (s *buyerService) UpdateProfile(ctx context.Context, userID string, req dto
 		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
 
-	arg := sqlc.UpdateBuyerProfileParams{
-		ID: existing.ID,
+	pUID, pEnt := authz.BuildUserEntity(principalID, string(principalUser.Role))
+	rUID, rEnt := authz.BuildProfileEntity(pgUUIDToStr(existing.ID.Bytes), pgUUIDToStr(existing.UserID.Bytes))
+	entities := authz.MergeEntities(pEnt, rEnt)
+
+	allowed, err := s.authorizer.IsAuthorized(pUID, authz.ActionUpdateProfile(), rUID, entities)
+	if err != nil {
+		return dto.BuyerProfileResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
 	}
+	if !allowed {
+		return dto.BuyerProfileResponse{}, ErrForbidden
+	}
+
+	orgName := existing.OrganizationName
+	buyerType := string(existing.BuyerType)
+	address := existing.Address
+	district := existing.District
+	state := existing.State
+	lat := fromPgNumeric(existing.Latitude)
+	lon := fromPgNumeric(existing.Longitude)
 
 	if req.OrganizationName != nil {
-		arg.OrganizationName = *req.OrganizationName
-	} else {
-		arg.OrganizationName = existing.OrganizationName
+		orgName = *req.OrganizationName
 	}
 	if req.BuyerType != nil {
-		arg.BuyerType = sqlc.BuyerType(*req.BuyerType)
-	} else {
-		arg.BuyerType = existing.BuyerType
+		buyerType = *req.BuyerType
 	}
 	if req.Address != nil {
-		arg.Address = *req.Address
-	} else {
-		arg.Address = existing.Address
+		address = *req.Address
 	}
 	if req.District != nil {
-		arg.District = *req.District
-	} else {
-		arg.District = existing.District
+		district = *req.District
 	}
 	if req.State != nil {
-		arg.State = *req.State
-	} else {
-		arg.State = existing.State
+		state = *req.State
 	}
 	if req.Latitude != nil {
-		arg.Latitude = toPgNumeric(*req.Latitude)
-	} else {
-		arg.Latitude = existing.Latitude
+		lat = *req.Latitude
 	}
 	if req.Longitude != nil {
-		arg.Longitude = toPgNumeric(*req.Longitude)
-	} else {
-		arg.Longitude = existing.Longitude
+		lon = *req.Longitude
 	}
 
-	profile, err := s.buyerRepo.Update(ctx, arg)
+	profile, err := s.buyerRepo.UpdateProfile(ctx, pgUUIDToStr(existing.ID.Bytes), orgName, buyerType, address, district, state, lat, lon)
 	if err != nil {
 		if errors.Is(err, repository.ErrCheckViolation) {
 			return dto.BuyerProfileResponse{}, fmt.Errorf("%w: invalid values", ErrValidation)
@@ -173,8 +184,8 @@ func (s *buyerService) UpdateProfile(ctx context.Context, userID string, req dto
 
 func mapBuyerResponse(profile sqlc.BuyerProfile) dto.BuyerProfileResponse {
 	return dto.BuyerProfileResponse{
-		ID:               pgUUIDToStr(profile.ID),
-		UserID:           pgUUIDToStr(profile.UserID),
+		ID:               pgUUIDToStr(profile.ID.Bytes),
+		UserID:           pgUUIDToStr(profile.UserID.Bytes),
 		OrganizationName: profile.OrganizationName,
 		BuyerType:        string(profile.BuyerType),
 		Address:          profile.Address,

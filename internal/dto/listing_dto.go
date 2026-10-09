@@ -3,15 +3,15 @@ package dto
 import "time"
 
 type CreateListingRequest struct {
-	CropType           string  `json:"crop_type" validate:"required"`
-	QuantityKg         float64 `json:"quantity_kg" validate:"required,gt=0"`
+	CropType           string   `json:"crop_type" validate:"required"`
+	QuantityKg         float64  `json:"quantity_kg" validate:"required,gt=0"`
 	PricePerKg         *float64 `json:"price_per_kg,omitempty" validate:"omitempty,gte=0"`
 	MoisturePercentage *float64 `json:"moisture_percentage,omitempty" validate:"omitempty,gte=0,lte=100"`
-	HarvestDate        string  `json:"harvest_date" validate:"required"`
-	AvailableFrom      string  `json:"available_from" validate:"required"`
-	AvailableUntil     string  `json:"available_until" validate:"required"`
-	PickupLatitude     float64 `json:"pickup_latitude" validate:"required,gte=-90,lte=90"`
-	PickupLongitude    float64 `json:"pickup_longitude" validate:"required,gte=-180,lte=180"`
+	HarvestDate        string   `json:"harvest_date" validate:"required"`
+	AvailableFrom      string   `json:"available_from" validate:"required"`
+	AvailableUntil     string   `json:"available_until" validate:"required"`
+	PickupLatitude     float64  `json:"pickup_latitude" validate:"required,gte=-90,lte=90"`
+	PickupLongitude    float64  `json:"pickup_longitude" validate:"required,gte=-180,lte=180"`
 }
 
 type UpdateListingRequest struct {

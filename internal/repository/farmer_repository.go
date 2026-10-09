@@ -4,16 +4,15 @@ import (
 	"context"
 
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type FarmerRepository interface {
-	Create(ctx context.Context, arg sqlc.CreateFarmerProfileParams) (sqlc.FarmerProfile, error)
-	GetByID(ctx context.Context, id pgtype.UUID) (sqlc.FarmerProfile, error)
-	GetByUserID(ctx context.Context, userID pgtype.UUID) (sqlc.FarmerProfile, error)
-	List(ctx context.Context, arg sqlc.ListFarmerProfilesParams) ([]sqlc.FarmerProfile, error)
-	Update(ctx context.Context, arg sqlc.UpdateFarmerProfileParams) (sqlc.FarmerProfile, error)
-	Delete(ctx context.Context, id pgtype.UUID) error
+	CreateProfile(ctx context.Context, userID, village, district, state string, lat, lon, land float64) (sqlc.FarmerProfile, error)
+	GetProfileByID(ctx context.Context, id string) (sqlc.FarmerProfile, error)
+	GetProfileByUserID(ctx context.Context, userID string) (sqlc.FarmerProfile, error)
+	ListProfiles(ctx context.Context, limit, offset int32) ([]sqlc.FarmerProfile, error)
+	UpdateProfile(ctx context.Context, id, village, district, state string, lat, lon, land float64) (sqlc.FarmerProfile, error)
+	DeleteProfile(ctx context.Context, id string) error
 }
 
 type farmerRepository struct {
@@ -26,31 +25,70 @@ func NewFarmerRepository(queries sqlc.Querier) FarmerRepository {
 	}
 }
 
-func (r *farmerRepository) Create(ctx context.Context, arg sqlc.CreateFarmerProfileParams) (sqlc.FarmerProfile, error) {
+func (r *farmerRepository) CreateProfile(ctx context.Context, userID, village, district, state string, lat, lon, land float64) (sqlc.FarmerProfile, error) {
+	uUUID, err := parseUUID(userID)
+	if err != nil {
+		return sqlc.FarmerProfile{}, err
+	}
+	arg := sqlc.CreateFarmerProfileParams{
+		UserID:        uUUID,
+		Village:       village,
+		District:      district,
+		State:         state,
+		Latitude:      toPgNumeric(lat),
+		Longitude:     toPgNumeric(lon),
+		LandAreaAcres: toPgNumeric(land),
+	}
 	res, err := r.queries.CreateFarmerProfile(ctx, arg)
 	return res, handleError(err)
 }
 
-func (r *farmerRepository) GetByID(ctx context.Context, id pgtype.UUID) (sqlc.FarmerProfile, error) {
-	res, err := r.queries.GetFarmerProfileByID(ctx, id)
+func (r *farmerRepository) GetProfileByID(ctx context.Context, id string) (sqlc.FarmerProfile, error) {
+	uuid, err := parseUUID(id)
+	if err != nil {
+		return sqlc.FarmerProfile{}, err
+	}
+	res, err := r.queries.GetFarmerProfileByID(ctx, uuid)
 	return res, handleError(err)
 }
 
-func (r *farmerRepository) GetByUserID(ctx context.Context, userID pgtype.UUID) (sqlc.FarmerProfile, error) {
-	res, err := r.queries.GetFarmerProfileByUserID(ctx, userID)
+func (r *farmerRepository) GetProfileByUserID(ctx context.Context, userID string) (sqlc.FarmerProfile, error) {
+	uuid, err := parseUUID(userID)
+	if err != nil {
+		return sqlc.FarmerProfile{}, err
+	}
+	res, err := r.queries.GetFarmerProfileByUserID(ctx, uuid)
 	return res, handleError(err)
 }
 
-func (r *farmerRepository) List(ctx context.Context, arg sqlc.ListFarmerProfilesParams) ([]sqlc.FarmerProfile, error) {
+func (r *farmerRepository) ListProfiles(ctx context.Context, limit, offset int32) ([]sqlc.FarmerProfile, error) {
+	arg := sqlc.ListFarmerProfilesParams{Limit: limit, Offset: offset}
 	res, err := r.queries.ListFarmerProfiles(ctx, arg)
 	return res, handleError(err)
 }
 
-func (r *farmerRepository) Update(ctx context.Context, arg sqlc.UpdateFarmerProfileParams) (sqlc.FarmerProfile, error) {
+func (r *farmerRepository) UpdateProfile(ctx context.Context, id, village, district, state string, lat, lon, land float64) (sqlc.FarmerProfile, error) {
+	uuid, err := parseUUID(id)
+	if err != nil {
+		return sqlc.FarmerProfile{}, err
+	}
+	arg := sqlc.UpdateFarmerProfileParams{
+		ID:            uuid,
+		Village:       village,
+		District:      district,
+		State:         state,
+		Latitude:      toPgNumeric(lat),
+		Longitude:     toPgNumeric(lon),
+		LandAreaAcres: toPgNumeric(land),
+	}
 	res, err := r.queries.UpdateFarmerProfile(ctx, arg)
 	return res, handleError(err)
 }
 
-func (r *farmerRepository) Delete(ctx context.Context, id pgtype.UUID) error {
-	return handleError(r.queries.DeleteFarmerProfile(ctx, id))
+func (r *farmerRepository) DeleteProfile(ctx context.Context, id string) error {
+	uuid, err := parseUUID(id)
+	if err != nil {
+		return err
+	}
+	return handleError(r.queries.DeleteFarmerProfile(ctx, uuid))
 }

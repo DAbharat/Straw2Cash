@@ -8,13 +8,14 @@ import (
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/dto"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
-	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	CreateUser(ctx context.Context, req dto.RegisterRequest) (dto.UserResponse, error)
 	GetUser(ctx context.Context, id string) (dto.UserResponse, error)
 	GetUserByPhone(ctx context.Context, phone string) (dto.UserResponse, error)
+	Login(ctx context.Context, phone, password string) (dto.UserResponse, error)
 }
 
 type userService struct {
@@ -33,15 +34,12 @@ func (s *userService) CreateUser(ctx context.Context, req dto.RegisterRequest) (
 		return dto.UserResponse{}, fmt.Errorf("%w: missing required fields", ErrValidation)
 	}
 
-	arg := sqlc.CreateUserParams{
-		Name:         req.Name,
-		Email:        toPgText(req.Email),
-		Phone:        req.Phone,
-		PasswordHash: req.Password, // In a real app, hash this using bcrypt
-		Role:         sqlc.UserRole(req.Role),
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return dto.UserResponse{}, fmt.Errorf("%w: failed to hash password: %v", ErrInternal, err)
 	}
 
-	user, err := s.userRepo.Create(ctx, arg)
+	user, err := s.userRepo.CreateUser(ctx, req.Name, req.Email, req.Phone, string(hashedPassword), req.Role)
 	if err != nil {
 		if errorsIsDuplicate(err) {
 			return dto.UserResponse{}, fmt.Errorf("%w: %v", ErrConflict, err)
@@ -53,12 +51,7 @@ func (s *userService) CreateUser(ctx context.Context, req dto.RegisterRequest) (
 }
 
 func (s *userService) GetUser(ctx context.Context, id string) (dto.UserResponse, error) {
-	uuid, err := parseUUID(id)
-	if err != nil {
-		return dto.UserResponse{}, fmt.Errorf("%w: invalid user ID", ErrValidation)
-	}
-
-	user, err := s.userRepo.GetByID(ctx, uuid)
+	user, err := s.userRepo.GetUserByID(ctx, id)
 	if err != nil {
 		if errorsIsNotFound(err) {
 			return dto.UserResponse{}, ErrNotFound
@@ -70,7 +63,7 @@ func (s *userService) GetUser(ctx context.Context, id string) (dto.UserResponse,
 }
 
 func (s *userService) GetUserByPhone(ctx context.Context, phone string) (dto.UserResponse, error) {
-	user, err := s.userRepo.GetByPhone(ctx, phone)
+	user, err := s.userRepo.GetUserByPhone(ctx, phone)
 	if err != nil {
 		if errorsIsNotFound(err) {
 			return dto.UserResponse{}, ErrNotFound
@@ -81,9 +74,25 @@ func (s *userService) GetUserByPhone(ctx context.Context, phone string) (dto.Use
 	return mapUserResponse(user), nil
 }
 
+func (s *userService) Login(ctx context.Context, phone, password string) (dto.UserResponse, error) {
+	user, err := s.userRepo.GetUserByPhone(ctx, phone)
+	if err != nil {
+		if errorsIsNotFound(err) {
+			return dto.UserResponse{}, ErrUnauthorized
+		}
+		return dto.UserResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return dto.UserResponse{}, ErrUnauthorized
+	}
+
+	return mapUserResponse(user), nil
+}
+
 func mapUserResponse(user sqlc.User) dto.UserResponse {
 	return dto.UserResponse{
-		ID:        pgUUIDToStr(user.ID),
+		ID:        pgUUIDToStr(user.ID.Bytes),
 		Name:      user.Name,
 		Email:     user.Email.String,
 		Phone:     user.Phone,
@@ -95,25 +104,7 @@ func mapUserResponse(user sqlc.User) dto.UserResponse {
 
 // Helpers
 
-func toPgText(s string) pgtype.Text {
-	if s == "" {
-		return pgtype.Text{Valid: false}
-	}
-	return pgtype.Text{String: s, Valid: true}
-}
-
-func parseUUID(s string) (pgtype.UUID, error) {
-	var u pgtype.UUID
-	err := u.Scan(s)
-	return u, err
-}
-
-func pgUUIDToStr(u pgtype.UUID) string {
-	if !u.Valid {
-		return ""
-	}
-	// Extract bytes and format as UUID
-	b := u.Bytes
+func pgUUIDToStr(b [16]byte) string {
 	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
 }
 

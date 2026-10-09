@@ -4,17 +4,16 @@ import (
 	"context"
 
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error)
-	GetByID(ctx context.Context, id pgtype.UUID) (sqlc.User, error)
-	GetByEmail(ctx context.Context, email pgtype.Text) (sqlc.User, error)
-	GetByPhone(ctx context.Context, phone string) (sqlc.User, error)
-	List(ctx context.Context, arg sqlc.ListUsersParams) ([]sqlc.User, error)
-	Update(ctx context.Context, arg sqlc.UpdateUserParams) (sqlc.User, error)
-	Delete(ctx context.Context, id pgtype.UUID) error
+	CreateUser(ctx context.Context, name, email, phone, passwordHash, role string) (sqlc.User, error)
+	GetUserByID(ctx context.Context, id string) (sqlc.User, error)
+	GetUserByEmail(ctx context.Context, email string) (sqlc.User, error)
+	GetUserByPhone(ctx context.Context, phone string) (sqlc.User, error)
+	ListUsers(ctx context.Context, limit, offset int32) ([]sqlc.User, error)
+	UpdateUser(ctx context.Context, id, name, email, phone, passwordHash, role string) (sqlc.User, error)
+	DeleteUser(ctx context.Context, id string) error
 }
 
 type userRepository struct {
@@ -27,36 +26,65 @@ func NewUserRepository(queries sqlc.Querier) UserRepository {
 	}
 }
 
-func (r *userRepository) Create(ctx context.Context, arg sqlc.CreateUserParams) (sqlc.User, error) {
+func (r *userRepository) CreateUser(ctx context.Context, name, email, phone, passwordHash, role string) (sqlc.User, error) {
+	arg := sqlc.CreateUserParams{
+		Name:         name,
+		Email:        toPgText(email),
+		Phone:        phone,
+		PasswordHash: passwordHash,
+		Role:         sqlc.UserRole(role),
+	}
 	res, err := r.queries.CreateUser(ctx, arg)
 	return res, handleError(err)
 }
 
-func (r *userRepository) GetByID(ctx context.Context, id pgtype.UUID) (sqlc.User, error) {
-	res, err := r.queries.GetUserByID(ctx, id)
+func (r *userRepository) GetUserByID(ctx context.Context, id string) (sqlc.User, error) {
+	uuid, err := parseUUID(id)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	res, err := r.queries.GetUserByID(ctx, uuid)
 	return res, handleError(err)
 }
 
-func (r *userRepository) GetByEmail(ctx context.Context, email pgtype.Text) (sqlc.User, error) {
-	res, err := r.queries.GetUserByEmail(ctx, email)
+func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (sqlc.User, error) {
+	res, err := r.queries.GetUserByEmail(ctx, toPgText(email))
 	return res, handleError(err)
 }
 
-func (r *userRepository) GetByPhone(ctx context.Context, phone string) (sqlc.User, error) {
+func (r *userRepository) GetUserByPhone(ctx context.Context, phone string) (sqlc.User, error) {
 	res, err := r.queries.GetUserByPhone(ctx, phone)
 	return res, handleError(err)
 }
 
-func (r *userRepository) List(ctx context.Context, arg sqlc.ListUsersParams) ([]sqlc.User, error) {
+func (r *userRepository) ListUsers(ctx context.Context, limit, offset int32) ([]sqlc.User, error) {
+	arg := sqlc.ListUsersParams{Limit: limit, Offset: offset}
 	res, err := r.queries.ListUsers(ctx, arg)
 	return res, handleError(err)
 }
 
-func (r *userRepository) Update(ctx context.Context, arg sqlc.UpdateUserParams) (sqlc.User, error) {
+func (r *userRepository) UpdateUser(ctx context.Context, id, name, email, phone, passwordHash, role string) (sqlc.User, error) {
+	uuid, err := parseUUID(id)
+	if err != nil {
+		return sqlc.User{}, err
+	}
+	arg := sqlc.UpdateUserParams{
+		ID:           uuid,
+		Name:         name,
+		Email:        toPgText(email),
+		Phone:        phone,
+		PasswordHash: passwordHash,
+	}
 	res, err := r.queries.UpdateUser(ctx, arg)
 	return res, handleError(err)
 }
 
-func (r *userRepository) Delete(ctx context.Context, id pgtype.UUID) error {
-	return handleError(r.queries.DeleteUser(ctx, id))
+func (r *userRepository) DeleteUser(ctx context.Context, id string) error {
+	uuid, err := parseUUID(id)
+	if err != nil {
+		return err
+	}
+	return handleError(r.queries.DeleteUser(ctx, uuid))
 }
+
+
