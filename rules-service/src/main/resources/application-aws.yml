@@ -1,0 +1,7 @@
+aws:
+  dynamodb:
+    endpoint: ""              # empty = use real AWS
+  sns:
+    contract-events-topic-arn: "arn:aws:sns:ap-south-1:xxxx:contract-events"
+  s3:
+    contracts-bucket: strawmarket-contracts-prod

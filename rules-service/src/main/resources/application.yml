@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: rules-service
+  profiles:
+    active: local          # local | aws
+
+server:
+  port: 8080
+
+aws:
+  region: ap-south-1       # Mumbai — closest to Punjab
+  dynamodb:
+    endpoint: http://localhost:8000   # DynamoDB Local; override in aws profile
+  sns:
+    contract-events-topic-arn: ""
+  s3:
+    contracts-bucket: strawmarket-contracts-local
+  cognito:
+    user-pool-id: ""
+    client-id: ""
+
+logging:
+  level:
+    com.strawmarket: DEBUG
+    software.amazon.awssdk: INFO
