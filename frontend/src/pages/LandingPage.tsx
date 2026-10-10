@@ -59,7 +59,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
         {/* Hero Content Left-Aligned with Oversized Typography */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-16 w-full flex-1 flex items-center">
-          <div className="max-w-2xl text-left">
+          <div className="max-w-3xl lg:max-w-4xl xl:max-w-5xl text-left">
             {/* Golden Outlined Pill Badge with Blur Typing Reveal */}
             <div className="mb-6">
               <span className="inline-flex items-center gap-2 border border-[#E5A812] px-6 py-2 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-[#E5A812] bg-[#0D1810]/40 backdrop-blur-xs">
@@ -76,17 +76,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Giant Display Headline with Blur & Character Typing Effect */}
-            <div className="mb-6 drop-shadow-sm">
+            <div className="mb-6 drop-shadow-sm max-w-full">
               <BlurRevealText
                 as="h1"
-                text="OrganicFarming"
+                text="Organic Farming"
                 mode="char"
                 delay={150}
                 staggerDelay={35}
                 showCursor={false}
                 triggerOnScroll={false}
                 initialBlurVisible={true}
-                className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-white tracking-tight leading-[1.04] block font-sans"
+                className="text-3xl min-[400px]:text-4xl sm:text-5xl md:text-6xl lg:text-[4.75rem] xl:text-[5.5rem] font-bold text-white tracking-tight leading-[1.08] block font-sans"
               />
               <BlurRevealText
                 as="h1"
@@ -97,7 +97,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 showCursor={true}
                 triggerOnScroll={false}
                 initialBlurVisible={true}
-                className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-bold text-white tracking-tight leading-[1.04] block font-sans"
+                className="text-3xl min-[400px]:text-4xl sm:text-5xl md:text-6xl lg:text-[4.75rem] xl:text-[5.5rem] font-bold text-white tracking-tight leading-[1.08] block font-sans"
               />
             </div>
 
@@ -105,25 +105,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <BlurRevealText
               as="p"
               text="Straw2Cash aims to make agricultural straw easier to estimate, list, discover, and trade."
-              mode="word"
+              mode="word" 
               delay={1300}
               staggerDelay={50}
               triggerOnScroll={false}
               initialBlurVisible={true}
-              className="text-white/85 text-base sm:text-lg leading-relaxed mb-10 font-normal max-w-xl block"
+              className="text-white/85 text-sm sm:text-lg leading-relaxed mb-8 sm:mb-10 font-normal max-w-xl block"
             />
 
             {/* Prominent CTAs with Golden Arrow Circles */}
-            <div className="flex flex-wrap items-center gap-5">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-5">
               <button
                 onClick={() => {
                   switchRole('farmer');
                   onNavigate('/farmer/residue-calculator');
                 }}
-                className="bg-[#2E581F] hover:bg-[#244818] text-white px-7 py-4 rounded-full font-bold text-sm sm:text-base inline-flex items-center gap-3 transition-all shadow-xl hover:scale-102 cursor-pointer border border-white/10"
+                className="w-full sm:w-auto bg-[#2E581F] hover:bg-[#244818] text-white px-6 sm:px-7 py-3.5 sm:py-4 rounded-full font-bold text-xs sm:text-base inline-flex items-center justify-center gap-3 transition-all shadow-xl hover:scale-102 cursor-pointer border border-white/10"
               >
                 <span>Discover More</span>
-                <span className="w-6 h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
                   →
                 </span>
               </button>
@@ -133,10 +133,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   switchRole('buyer');
                   onNavigate('/buyer/marketplace');
                 }}
-                className="border border-[#E5A812] hover:bg-[#E5A812]/15 text-white px-7 py-4 rounded-full font-bold text-sm sm:text-base inline-flex items-center gap-3 transition-all cursor-pointer bg-black/25 backdrop-blur-xs"
+                className="w-full sm:w-auto border border-[#E5A812] hover:bg-black/15 text-white px-6 sm:px-7 py-3.5 sm:py-4 rounded-full font-bold text-xs sm:text-base inline-flex items-center justify-center gap-3 transition-all cursor-pointer bg-transparent "
               >
                 <span className="text-[#E5A812]">See All Service</span>
-                <span className="w-6 h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
+                <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
                   →
                 </span>
               </button>
@@ -202,7 +202,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
               {/* Three Pillars Summary Pills */}
               <div className="space-y-3 pt-2">
-                <div className="flex items-center gap-3 bg-black/40 backdrop-blur-sm border border-white/10 p-3 rounded-xl">
+                <div className="flex items-center gap-3 bg-transparent backdrop-blur-sm border border-white/10 p-3 rounded-xl hover:border-[#E5A812]/40 transition-all">
                   <div className="w-8 h-8 rounded-full bg-[#E5A812]/20 text-[#E5A812] flex items-center justify-center font-bold text-xs shrink-0">
                     01
                   </div>
@@ -212,7 +212,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-black/40 backdrop-blur-sm border border-white/10 p-3 rounded-xl">
+                <div className="flex items-center gap-3 bg-transparent backdrop-blur-sm border border-white/10 p-3 rounded-xl hover:border-[#68BA75]/40 transition-all">
                   <div className="w-8 h-8 rounded-full bg-[#68BA75]/20 text-[#68BA75] flex items-center justify-center font-bold text-xs shrink-0">
                     02
                   </div>
@@ -222,7 +222,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 bg-black/40 backdrop-blur-sm border border-white/10 p-3 rounded-xl">
+                <div className="flex items-center gap-3 bg-transparent backdrop-blur-sm border border-white/10 p-3 rounded-xl hover:border-[#E5A812]/40 transition-all">
                   <div className="w-8 h-8 rounded-full bg-[#E5A812]/20 text-[#E5A812] flex items-center justify-center font-bold text-xs shrink-0">
                     03
                   </div>
@@ -236,11 +236,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
             {/* Right Column: Quantitative Impact Metrics & Overview Card */}
             <div className="lg:col-span-7">
-              <div className="bg-black/55 backdrop-blur-md border border-white/15 rounded-3xl p-6 sm:p-10 shadow-2xl space-y-8">
+              <div className="bg-transparent backdrop-blur-md border border-white/15 rounded-3xl p-5 sm:p-8 lg:p-10 shadow-2xl space-y-6 sm:space-y-8">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center justify-between">
+                  <h3 className="text-base sm:text-lg font-bold text-white flex flex-col min-[420px]:flex-row min-[420px]:items-center justify-between gap-2">
                     <span>Verified Ecosystem Impact</span>
-                    <span className="text-xs font-mono text-[#E5A812] bg-[#E5A812]/15 px-3 py-1 rounded-full border border-[#E5A812]/30">
+                    <span className="text-xs font-mono text-[#E5A812] bg-[#E5A812]/15 px-3 py-1 rounded-full border border-[#E5A812]/30 w-fit">
                       Season 2025–26
                     </span>
                   </h3>
@@ -250,9 +250,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* 4 Quantitative Impact Counters with CountUpNumber */}
-                <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E5A812]/40 transition-all">
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#E5A812]">
+                <div className="grid grid-cols-1 min-[440px]:grid-cols-2 gap-3 sm:gap-6">
+                  <div className="bg-transparent border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-[#E5A812]/40 transition-all">
+                    <p className="text-xl min-[440px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#E5A812]">
                       <CountUpNumber value={142850} duration={2200} suffix=" t" />
                     </p>
                     <p className="text-[11px] font-medium text-white/70 mt-1 uppercase tracking-wider">
@@ -261,8 +261,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <p className="text-[10px] text-[#68BA75] mt-1 font-semibold">100% Recycled Biomass</p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E5A812]/40 transition-all">
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
+                  <div className="bg-transparent border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-[#E5A812]/40 transition-all">
+                    <p className="text-xl min-[440px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
                       <CountUpNumber value={29.85} duration={2000} prefix="₹" suffix=" Cr" decimals={2} />
                     </p>
                     <p className="text-[11px] font-medium text-white/70 mt-1 uppercase tracking-wider">
@@ -271,8 +271,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <p className="text-[10px] text-[#E5A812] mt-1 font-semibold">Direct Escrow Transfers</p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E5A812]/40 transition-all">
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#E5A812]">
+                  <div className="bg-transparent border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-[#E5A812]/40 transition-all">
+                    <p className="text-xl min-[440px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#E5A812]">
                       <CountUpNumber value={4890} duration={2400} suffix="+" />
                     </p>
                     <p className="text-[11px] font-medium text-white/70 mt-1 uppercase tracking-wider">
@@ -281,8 +281,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                     <p className="text-[10px] text-[#68BA75] mt-1 font-semibold">Verified by Satellite</p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#E5A812]/40 transition-all">
-                    <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#68BA75]">
+                  <div className="bg-transparent border border-white/10 rounded-2xl p-4 sm:p-5 hover:border-[#E5A812]/40 transition-all">
+                    <p className="text-xl min-[440px]:text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#68BA75]">
                       <CountUpNumber value={214275} duration={2300} suffix=" t" />
                     </p>
                     <p className="text-[11px] font-medium text-white/70 mt-1 uppercase tracking-wider">
@@ -292,13 +292,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
-                <div className="pt-2 flex flex-wrap items-center justify-between gap-4 border-t border-white/10">
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/10">
                   <p className="text-xs text-white/60 max-w-sm">
                     Read the complete environmental calculation methodology or check historical district reports.
                   </p>
                   <button
                     onClick={() => onNavigate('/impact')}
-                    className="inline-flex items-center gap-2 bg-[#2E581F] hover:bg-[#244818] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-md"
+                    className="inline-flex items-center justify-center gap-2 bg-[#2E581F] hover:bg-[#244818] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer shadow-md w-full sm:w-auto"
                   >
                     <span>View Live Impact Ledger</span>
                     <span className="w-4 h-4 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-bold text-[10px]">
@@ -353,7 +353,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           {/* 4 Feature Cards in an Elegant Translucent Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Feature 1: Residue Yield Estimator */}
-            <div className="bg-black/55 backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-black/65 transition-all shadow-xl group">
+            <div className="bg-transparent backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-white/5 transition-all shadow-xl group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-[#E5A812]/15 border border-[#E5A812]/30 flex items-center justify-center text-[#E5A812] mb-5 group-hover:scale-105 transition-transform">
                   <Leaf className="w-6 h-6" />
@@ -389,7 +389,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Feature 2: Straw Marketplace */}
-            <div className="bg-black/55 backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-black/65 transition-all shadow-xl group">
+            <div className="bg-transparent backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-white/5 transition-all shadow-xl group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-[#68BA75]/15 border border-[#68BA75]/30 flex items-center justify-center text-[#68BA75] mb-5 group-hover:scale-105 transition-transform">
                   <TrendingUp className="w-6 h-6" />
@@ -425,7 +425,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Feature 3: Satellite Telemetry */}
-            <div className="bg-black/55 backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-black/65 transition-all shadow-xl group">
+            <div className="bg-transparent backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-white/5 transition-all shadow-xl group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-[#E5A812]/15 border border-[#E5A812]/30 flex items-center justify-center text-[#E5A812] mb-5 group-hover:scale-105 transition-transform">
                   <Flame className="w-6 h-6" />
@@ -458,7 +458,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Feature 4: Escrow & Legal Contracts */}
-            <div className="bg-black/55 backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-black/65 transition-all shadow-xl group">
+            <div className="bg-transparent backdrop-blur-md border border-white/15 rounded-3xl p-6 flex flex-col justify-between hover:border-[#E5A812]/50 hover:bg-white/5 transition-all shadow-xl group">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-[#68BA75]/15 border border-[#68BA75]/30 flex items-center justify-center text-[#68BA75] mb-5 group-hover:scale-105 transition-transform">
                   <ShieldCheck className="w-6 h-6" />
@@ -543,16 +543,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Prominent CTAs */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-5">
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-5">
             <button
               onClick={() => {
                 switchRole('farmer');
                 onNavigate('/farmer/listings/new');
               }}
-              className="bg-[#2E581F] hover:bg-[#244818] text-white px-8 py-4 rounded-full font-bold text-sm sm:text-base inline-flex items-center gap-3 transition-all shadow-2xl hover:scale-102 cursor-pointer border border-white/10"
+              className="w-full sm:w-auto bg-[#2E581F] hover:bg-[#244818] text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-xs sm:text-base inline-flex items-center justify-center gap-3 transition-all shadow-2xl hover:scale-102 cursor-pointer border border-white/10"
             >
               <span>List Your Crop Straw</span>
-              <span className="w-6 h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
                 →
               </span>
             </button>
@@ -562,17 +562,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 switchRole('buyer');
                 onNavigate('/buyer/marketplace');
               }}
-              className="border border-[#E5A812] hover:bg-[#E5A812]/15 text-white px-8 py-4 rounded-full font-bold text-sm sm:text-base inline-flex items-center gap-3 transition-all cursor-pointer bg-black/35 backdrop-blur-xs"
+              className="w-full sm:w-auto border border-[#E5A812] hover:bg-[#E5A812]/15 text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-xs sm:text-base inline-flex items-center justify-center gap-3 transition-all cursor-pointer bg-black/35 backdrop-blur-xs"
             >
               <span className="text-[#E5A812]">Source Industrial Feedstock</span>
-              <span className="w-6 h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs shrink-0">
                 →
               </span>
             </button>
 
             <button
               onClick={() => onNavigate('/assistant')}
-              className="text-white/80 hover:text-white px-6 py-4 rounded-full text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-all cursor-pointer"
+              className="w-full sm:w-auto text-white/80 hover:text-white px-4 sm:px-6 py-3 sm:py-4 rounded-full text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <span>Ask Multilingual AI Assistant</span>
               <span className="text-[#E5A812]">→</span>
@@ -580,7 +580,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Trust Guarantees Bar */}
-          <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-white/10 max-w-3xl mx-auto">
+          <div className="pt-8 sm:pt-10 grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-left border-t border-white/10 max-w-3xl mx-auto">
             <div className="flex items-center gap-2.5 text-xs text-white/70">
               <CheckCircle2 className="w-4 h-4 text-[#E5A812] shrink-0" />
               <span>100% Escrow Backed</span>

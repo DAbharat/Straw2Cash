@@ -145,14 +145,14 @@ export const ListingDetailsPage: React.FC<ListingDetailsPageProps> = ({
           </div>
 
           {/* Environmental mitigation banner */}
-          <div className="p-4 bg-[#EAF2ED] border border-[#BFD5C6] rounded-xl flex items-center justify-between text-xs text-[#1E4530]">
+          <div className="p-4 bg-[#EAF2ED] border border-[#BFD5C6] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-[#1E4530]">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-[#245E3F]" />
+              <ShieldCheck className="w-4 h-4 text-[#245E3F] shrink-0" />
               <span>
                 Avoids <strong>{listing.estimatedFireRiskAvoidedCo2Tons || 150} Metric Tons</strong> of CO₂ and particulate emission
               </span>
             </div>
-            <span className="font-semibold text-[#245E3F]">Zero Stubble Burn Verified</span>
+            <span className="font-semibold text-[#245E3F] shrink-0">Zero Stubble Burn Verified</span>
           </div>
         </div>
 

@@ -77,18 +77,18 @@ export const InsightsPage: React.FC<InsightsPageProps> = ({ onNavigate }) => {
 
       {/* Price Trends Section */}
       <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-2">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white">Residue Price Trajectory (₹/Ton Delivered)</h2>
             <p className="text-xs text-white/60">Historical 5-month spot rate movements across North Indian trading hubs</p>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 w-fit">
             Current: Oct 2026 Season
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full max-w-full">
+          <table className="w-full min-w-[500px] text-left text-xs">
             <thead>
               <tr className="border-b border-white/10 text-white/60 font-semibold">
                 <th className="py-3 px-3">Timeline Month</th>

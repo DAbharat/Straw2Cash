@@ -33,7 +33,7 @@ export const PageHeroBanner: React.FC<PageHeroBannerProps> = ({
   children,
 }) => {
   return (
-    <div className="relative w-full -mt-24 sm:-mt-28 pt-28 sm:pt-36 pb-14 sm:pb-20 overflow-hidden text-white mb-8 border-b border-white/10">
+    <div className="relative w-full pt-28 sm:pt-36 pb-14 sm:pb-20 overflow-hidden text-white mb-8 border-b border-white/10">
       {/* Full-width cinematic background image */}
       <div className="absolute inset-0 z-0">
         <img
@@ -67,7 +67,7 @@ export const PageHeroBanner: React.FC<PageHeroBannerProps> = ({
             staggerDelay={35}
             triggerOnScroll={false}
             initialBlurVisible={true}
-            className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.1] block drop-shadow-md"
+            className="text-2xl min-[400px]:text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.1] block drop-shadow-md break-normal"
           />
 
           {/* Short Supporting Description */}
@@ -76,22 +76,22 @@ export const PageHeroBanner: React.FC<PageHeroBannerProps> = ({
           </p>
 
           {/* Action buttons with golden arrow circles if provided */}
-          {actions && <div className="mt-6 flex flex-wrap items-center gap-4">{actions}</div>}
+          {actions && <div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4">{actions}</div>}
         </div>
 
         {/* Live Metrics Floating Bar if provided */}
         {stats && stats.length > 0 && (
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl">
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 max-w-4xl">
             {stats.map((stat, idx) => (
               <div
                 key={idx}
-                className="bg-black/50 backdrop-blur-md border border-white/15 rounded-2xl p-4 hover:border-[#E5A812]/40 transition-all shadow-lg"
+                className="bg-black/50 backdrop-blur-md border border-white/15 rounded-xl sm:rounded-2xl p-3 sm:p-4 hover:border-[#E5A812]/40 transition-all shadow-lg"
               >
-                <p className="text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                <p className="text-[10px] sm:text-[11px] font-semibold text-white/70 uppercase tracking-wider truncate">
                   {stat.label}
                 </p>
                 <p
-                  className={`text-xl sm:text-2xl font-extrabold mt-1 ${
+                  className={`text-lg sm:text-2xl font-extrabold mt-1 truncate ${
                     stat.highlight ? 'text-[#E5A812]' : 'text-white'
                   }`}
                 >

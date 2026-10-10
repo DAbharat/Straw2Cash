@@ -207,8 +207,8 @@ export const BalerServicesPage: React.FC<BalerServicesPageProps> = ({ onNavigate
 
       {/* Add Equipment Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl">
             <h3 className="text-base font-bold text-[#19241B] mb-4">Register New Agricultural Machinery</h3>
             <form onSubmit={handleAddEquipment} className="space-y-4">
               <div>

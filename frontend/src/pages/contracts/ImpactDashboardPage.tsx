@@ -93,42 +93,42 @@ export const ImpactDashboardPage: React.FC<ImpactDashboardPageProps> = ({ onNavi
       </div>
 
       {/* Hero Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
-          <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">Residue Diverted</p>
-          <p className="text-2xl font-extrabold text-[#E5A812] mt-1">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white/60 uppercase tracking-wider truncate">Residue Diverted</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-[#E5A812] mt-1 truncate">
             <CountUpNumber value={impact.stubbleDivertedTons} suffix=" t" duration={1800} />
           </p>
-          <p className="text-[10px] text-emerald-400 mt-1 font-semibold">100% Recycled Biomass</p>
+          <p className="text-[10px] text-emerald-400 mt-1 font-semibold truncate">100% Recycled Biomass</p>
         </div>
 
-        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl hover:border-emerald-500/50 hover:bg-[#0D1810]/90 transition-all">
-          <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">CO₂ Avoided</p>
-          <p className="text-2xl font-extrabold text-emerald-400 mt-1">
+        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl hover:border-emerald-500/50 hover:bg-[#0D1810]/90 transition-all">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white/60 uppercase tracking-wider truncate">CO₂ Avoided</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-emerald-400 mt-1 truncate">
             <CountUpNumber value={impact.co2EmissionsAvoidedTons} suffix=" t" duration={1900} />
           </p>
-          <p className="text-[10px] text-white/50 mt-1">Equivalent to 46k cars</p>
+          <p className="text-[10px] text-white/50 mt-1 truncate">Equivalent to 46k cars</p>
         </div>
 
-        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
-          <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">PM2.5 Saved</p>
-          <p className="text-2xl font-extrabold text-white mt-1">
+        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white/60 uppercase tracking-wider truncate">PM2.5 Saved</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-white mt-1 truncate">
             <CountUpNumber value={impact.pm25AvoidedKg} suffix=" kg" duration={2000} />
           </p>
-          <p className="text-[10px] text-emerald-400 mt-1 font-semibold">Cleaner Delhi-NCR Air</p>
+          <p className="text-[10px] text-emerald-400 mt-1 font-semibold truncate">Cleaner Delhi-NCR Air</p>
         </div>
 
-        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
-          <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">Fires Prevented</p>
-          <p className="text-2xl font-extrabold text-[#E5A812] mt-1">
+        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white/60 uppercase tracking-wider truncate">Fires Prevented</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-[#E5A812] mt-1 truncate">
             <CountUpNumber value={impact.firesPreventedCount} duration={2100} />
           </p>
-          <p className="text-[10px] text-emerald-400 mt-1 font-semibold">Zero fire penalties</p>
+          <p className="text-[10px] text-emerald-400 mt-1 font-semibold truncate">Zero fire penalties</p>
         </div>
 
-        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
-          <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">Farmer Income</p>
-          <p className="text-2xl font-extrabold text-white mt-1">
+        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white/60 uppercase tracking-wider truncate">Farmer Income</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-white mt-1 truncate">
             <CountUpNumber
               value={impact.farmerIncomeGeneratedInr / 10000000}
               decimals={2}
@@ -137,15 +137,15 @@ export const ImpactDashboardPage: React.FC<ImpactDashboardPageProps> = ({ onNavi
               duration={1800}
             />
           </p>
-          <p className="text-[10px] text-emerald-400 mt-1 font-semibold">Direct Escrow Transfers</p>
+          <p className="text-[10px] text-emerald-400 mt-1 font-semibold truncate">Direct Escrow Transfers</p>
         </div>
 
-        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
-          <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">Coal Replaced</p>
-          <p className="text-2xl font-extrabold text-[#E5A812] mt-1">
+        <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-3.5 sm:p-4 shadow-xl hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all">
+          <p className="text-[10px] sm:text-[11px] font-semibold text-white/60 uppercase tracking-wider truncate">Coal Replaced</p>
+          <p className="text-xl sm:text-2xl font-extrabold text-[#E5A812] mt-1 truncate">
             <CountUpNumber value={impact.coalEquivalentReplacedMWh} suffix=" MWh" duration={2200} />
           </p>
-          <p className="text-[10px] text-white/50 mt-1">Thermal power co-firing</p>
+          <p className="text-[10px] text-white/50 mt-1 truncate">Thermal power co-firing</p>
         </div>
       </div>
 

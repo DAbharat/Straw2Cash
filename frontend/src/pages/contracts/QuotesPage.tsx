@@ -180,16 +180,16 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
                 <p className="italic">{q.terms}</p>
 
                 {q.status === 'pending' && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
                     <button
                       onClick={() => handleUpdateStatus(q.id, 'rejected')}
-                      className="px-3 py-1.5 border border-[#D5CFBF] text-[#5E6D63] hover:text-[#19241B] rounded-lg font-semibold transition-colors cursor-pointer"
+                      className="px-3 py-1.5 border border-[#D5CFBF] text-[#5E6D63] hover:text-[#19241B] rounded-lg font-semibold transition-colors cursor-pointer text-xs"
                     >
                       Decline
                     </button>
                     <button
                       onClick={() => handleUpdateStatus(q.id, 'accepted')}
-                      className="px-4 py-1.5 bg-[#1B382B] text-white rounded-lg font-semibold hover:bg-[#12261D] transition-colors cursor-pointer"
+                      className="px-4 py-1.5 bg-[#1B382B] text-white rounded-lg font-semibold hover:bg-[#12261D] transition-colors cursor-pointer text-xs"
                     >
                       Accept & Create Contract →
                     </button>
@@ -203,8 +203,8 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
 
       {/* Quote Generation Modal */}
       {showRequestModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-lg w-full shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl">
             <h3 className="text-base font-bold text-[#19241B] mb-1">
               Java Rules Engine Quote Request
             </h3>
@@ -213,7 +213,7 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
             </p>
 
             <form onSubmit={handleCreateQuote} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#19241B] mb-1">
                     Offered Base Rate (₹/Ton)
@@ -240,7 +240,7 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-[#19241B] mb-1">
                     Haul Distance (km)

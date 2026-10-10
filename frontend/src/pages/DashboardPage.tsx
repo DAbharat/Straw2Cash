@@ -128,7 +128,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-8 text-white">
           {/* Action Callout if pending contracts */}
           {pendingContracts.length > 0 && (
-            <div className="p-5 bg-amber-950/70 backdrop-blur-md border border-amber-500/40 rounded-2xl flex items-center justify-between gap-4 shadow-xl">
+            <div className="p-4 sm:p-5 bg-amber-950/70 backdrop-blur-md border border-amber-500/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
               <div className="flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-[#E5A812] shrink-0" />
                 <div>
@@ -142,7 +142,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </div>
               <button
                 onClick={() => onNavigate('/contracts')}
-                className="px-4 py-2 bg-[#E5A812] hover:bg-[#d69b0d] text-[#0D1810] text-xs font-bold rounded-full transition-colors whitespace-nowrap cursor-pointer shadow-md"
+                className="w-full sm:w-auto px-4 py-2 bg-[#E5A812] hover:bg-[#d69b0d] text-[#0D1810] text-xs font-bold rounded-full transition-colors whitespace-nowrap cursor-pointer shadow-md text-center"
               >
                 Review & Sign →
               </button>
@@ -207,13 +207,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               {matches.slice(0, 3).map((match) => (
                 <div key={match.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/5 transition-colors">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-bold text-sm text-white">{match.requirement.buyerOrganization}</span>
                       <span className="text-xs font-mono font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">
                         {match.compatibilityScore}% Match
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-white/65 mt-1.5">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/65 mt-1.5">
                       <span>{match.requirement.cropType}</span>
                       <span aria-hidden="true">·</span>
                       <span>Target: <span className="font-mono tabular-nums text-white">{match.requirement.requiredQuantityTons}t</span></span>
@@ -222,8 +222,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
-                    <div className="text-right hidden sm:block">
+                  <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10">
+                    <div className="text-left sm:text-right">
                       <p className="text-[11px] text-white/50">Max Buyer Budget</p>
                       <p className="text-sm font-bold font-mono tabular-nums text-[#E5A812]">
                         ₹{match.requirement.maxPricePerTon.toLocaleString()}/ton
@@ -231,7 +231,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     </div>
                     <button
                       onClick={() => onNavigate('/farmer/matches')}
-                      className="px-4 py-2 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white text-xs font-bold rounded-full transition-all cursor-pointer shadow-md hover:scale-102"
+                      className="px-4 py-2 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white text-xs font-bold rounded-full transition-all cursor-pointer shadow-md hover:scale-102 shrink-0"
                     >
                       Connect & Quote
                     </button>
@@ -383,7 +383,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
           {balerJobs.map((job) => (
             <div key={job.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/5 transition-colors">
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="font-bold text-sm text-white">
                     {job.village}, {job.district} · {job.farmerName}
                   </h3>
@@ -391,7 +391,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     {job.distanceFromBaseKm} km away
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-white/65 mt-1.5">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/65 mt-1.5">
                   <span>{job.cropType}</span>
                   <span aria-hidden="true">·</span>
                   <span>Field Area: <span className="font-mono tabular-nums text-white">{job.fieldAreaAcres} Acres</span></span>
@@ -400,8 +400,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="text-right">
+              <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-white/10">
+                <div className="text-left sm:text-right">
                   <p className="text-[11px] text-white/50">Total Baling Fee</p>
                   <p className="text-base font-bold font-mono tabular-nums text-[#E5A812]">
                     ₹{job.totalJobEarningsEstInr.toLocaleString()}
@@ -409,7 +409,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </div>
                 <button
                   onClick={() => onNavigate('/baler/matches')}
-                  className="px-4 py-2 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-colors cursor-pointer shadow-md hover:scale-102"
+                  className="px-4 py-2 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-colors cursor-pointer shadow-md hover:scale-102 shrink-0"
                 >
                   Accept Job
                 </button>

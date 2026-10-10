@@ -54,17 +54,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg bg-white/85 backdrop-blur-xl border border-white/70 rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-lg bg-white/85 backdrop-blur-xl border border-white/70 rounded-3xl p-5 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
         <div className="text-center mb-8">
           <BlurRevealText
             text="Sign in to Straw2Cash"
             as="h2"
             className="text-2xl sm:text-3xl font-extrabold text-[#19241B] tracking-tight"
           />
-          <p className="text-xs text-[#5E6D63] mt-1.5">
-            Java Auth Authority (Port 8080) with shared JWT token
-          </p>
         </div>
 
         {/* 1-Click Demo Profiles */}
@@ -177,7 +174,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             disabled={loading}
             className="w-full py-2.5 px-4 bg-[#1B382B] text-white rounded-lg text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 mt-2"
           >
-            <span>{loading ? 'Authenticating with Java Backend...' : 'Sign In via Java Auth (8080)'}</span>
+            <span>{loading ? 'Authenticating ...' : 'Sign In'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </form>
