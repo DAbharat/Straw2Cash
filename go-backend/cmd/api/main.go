@@ -98,8 +98,13 @@ func main() {
 		AuthMiddleware:     authMiddleware,
 	})
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	srv := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":" + port,
 		Handler:      r,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -108,7 +113,7 @@ func main() {
 
 	srvErr := make(chan error, 1)
 	go func() {
-		log.Println("Starting server on :8080")
+		log.Printf("Starting server on :%s", port)
 		srvErr <- srv.ListenAndServe()
 	}()
 
