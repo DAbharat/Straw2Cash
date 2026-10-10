@@ -10,13 +10,14 @@ import (
 	"time"
 
 	"github.com/DAbharat/Straw2Cash/internal/authz"
+	"github.com/DAbharat/Straw2Cash/internal/db"
 	"github.com/DAbharat/Straw2Cash/internal/db/sqlc"
 	"github.com/DAbharat/Straw2Cash/internal/handler"
 	"github.com/DAbharat/Straw2Cash/internal/middleware"
 	"github.com/DAbharat/Straw2Cash/internal/repository"
 	"github.com/DAbharat/Straw2Cash/internal/router"
 	"github.com/DAbharat/Straw2Cash/internal/service"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -24,9 +25,13 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		log.Fatal("DATABASE_URL must be set")
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found or failed to load, relying on environment variables")
+	}
+
+	cfg, err := db.Load()
+	if err != nil {
+		log.Fatalf("Failed to load database config: %v", err)
 	}
 
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -34,24 +39,11 @@ func main() {
 		log.Fatal("JWT_SECRET must be set")
 	}
 
-	// Connect to database with proper pool limits
-	dbConfig, err := pgxpool.ParseConfig(dbURL)
-	if err != nil {
-		log.Fatalf("Unable to parse database URL: %v", err)
-	}
-	dbConfig.MaxConns = 25
-	dbConfig.MinConns = 5
-	dbConfig.MaxConnLifetime = time.Hour
-
-	pool, err := pgxpool.NewWithConfig(ctx, dbConfig)
+	pool, err := db.New(cfg)
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v", err)
 	}
 	defer pool.Close()
-
-	if err := pool.Ping(ctx); err != nil {
-		log.Fatalf("Unable to ping database: %v", err)
-	}
 
 	queries := sqlc.New(pool)
 	store := repository.NewStore(pool)
