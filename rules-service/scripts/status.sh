@@ -1,4 +1,3 @@
-cat > scripts/status.sh << 'SCRIPT_EOF'
 #!/bin/bash
 # Quick status check
 
@@ -26,4 +25,3 @@ echo ""
 echo "Tables:"
 curl -s $ALB_URL/api/v1/status | python -m json.tool 2>/dev/null || curl -s $ALB_URL/api/v1/status
 echo ""
-SCRIPT_EOF
