@@ -1,7 +1,17 @@
 aws:
+  region: ap-south-1
   dynamodb:
-    endpoint: ""              # empty = use real AWS
+    endpoint: ""
   sns:
-    contract-events-topic-arn: "arn:aws:sns:ap-south-1:xxxx:contract-events"
+    contract-events-topic-arn: ""
   s3:
     contracts-bucket: strawmarket-contracts-prod
+
+jwt:
+  secret: "${JWT_SECRET}"
+
+logging:
+  level:
+    com.strawmarket: INFO
+    software.amazon.awssdk: WARN
+    org.springframework.web: INFO      # ← And this
