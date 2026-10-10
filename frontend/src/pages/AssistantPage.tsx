@@ -171,7 +171,7 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="bg-white/85 backdrop-blur-md border border-white/70 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-6 sm:p-8 flex flex-col h-[650px]">
+        <div className="bg-white/85 backdrop-blur-md border border-white/70 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-4 sm:p-8 flex flex-col h-[650px]">
           {/* Header with language picker */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DED2] shrink-0">
             <div>
@@ -185,11 +185,11 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Language selector */}
-            <div className="flex items-center gap-1 p-1 bg-white/70 backdrop-blur-md rounded-xl border border-white/60 shadow-xs">
-              <Globe2 className="w-3.5 h-3.5 text-[#5E6D63] ml-2 mr-1" />
+            <div className="flex items-center gap-1 p-1 bg-white/70 backdrop-blur-md rounded-xl border border-white/60 shadow-xs overflow-x-auto max-w-full">
+              <Globe2 className="w-3.5 h-3.5 text-[#5E6D63] ml-1.5 mr-0.5 shrink-0" />
               <button
                 onClick={() => handleLanguageChange('en')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 ${
                   language === 'en' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-[#5E6D63] hover:text-[#19241B]'
                 }`}
               >
@@ -197,19 +197,21 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
               </button>
               <button
                 onClick={() => handleLanguageChange('pa')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 ${
                   language === 'pa' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-[#5E6D63] hover:text-[#19241B]'
                 }`}
               >
-                ਪੰਜਾਬੀ (Punjabi)
+                <span>ਪੰਜਾਬੀ</span>
+                <span className="hidden sm:inline"> (Punjabi)</span>
               </button>
               <button
                 onClick={() => handleLanguageChange('hi')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 ${
                   language === 'hi' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-[#5E6D63] hover:text-[#19241B]'
                 }`}
               >
-                हिंदी (Hindi)
+                <span>हिंदी</span>
+                <span className="hidden sm:inline"> (Hindi)</span>
               </button>
             </div>
           </div>
@@ -318,7 +320,7 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={toggleVoiceInput}
-            className={`p-3 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer shrink-0 ${
               isListening
                 ? 'bg-rose-600 text-white border-rose-600 animate-pulse'
                 : 'bg-white border-[#D5CFBF] text-[#5E6D63] hover:text-[#1B382B] hover:border-[#1B382B]'
@@ -341,14 +343,14 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
                 ? 'पराली के भाव, बेलर मशीन या सब्सिडी के बारे में पूछें...'
                 : 'Ask about straw pricing, baling logistics, residue formulas...'
             }
-            className="flex-1 px-4 py-3 text-xs bg-white border border-[#D5CFBF] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1B382B] focus:border-[#1B382B]"
+            className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-xs bg-white border border-[#D5CFBF] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1B382B] focus:border-[#1B382B]"
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="px-4 py-3 bg-[#1B382B] text-white rounded-xl text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm"
+            className="px-3 sm:px-4 py-2.5 sm:py-3 bg-[#1B382B] text-white rounded-xl text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm shrink-0"
           >
-            <span>Send</span>
+            <span className="hidden min-[400px]:inline">Send</span>
             <Send className="w-3.5 h-3.5" />
           </button>
         </form>

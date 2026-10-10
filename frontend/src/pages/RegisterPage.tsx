@@ -57,8 +57,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-xl bg-white/85 backdrop-blur-xl border border-white/70 rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-xl bg-white/85 backdrop-blur-xl border border-white/70 rounded-3xl p-5 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
         <div className="text-center mb-6">
           <BlurRevealText
             text="Create your Straw2Cash Account"

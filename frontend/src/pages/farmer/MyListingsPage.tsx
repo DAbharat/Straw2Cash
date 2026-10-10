@@ -74,12 +74,12 @@ export const MyListingsPage: React.FC<MyListingsPageProps> = ({ onNavigate }) =>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl max-w-fit">
+      <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl overflow-x-auto max-w-full">
         {['all', 'available', 'reserved', 'contracted', 'fulfilled'].map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all capitalize cursor-pointer ${
+            className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all capitalize cursor-pointer whitespace-nowrap shrink-0 ${
               statusFilter === status
                 ? 'bg-[#E5A812] text-[#0D1810] shadow-md font-bold'
                 : 'text-white/60 hover:text-white'

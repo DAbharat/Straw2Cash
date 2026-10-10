@@ -64,8 +64,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
         </div>
 
         {/* Quick Role Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-white/70 backdrop-blur-md rounded-xl border border-white/60 shadow-xs">
-          <span className="text-[11px] font-semibold text-[#5E6D63] px-2">Role:</span>
+        <div className="flex items-center gap-1.5 p-1 bg-white/70 backdrop-blur-md rounded-xl border border-white/60 shadow-xs w-fit max-w-full overflow-x-auto">
+          <span className="text-[11px] font-semibold text-[#5E6D63] px-2 shrink-0">Role:</span>
           {(['farmer', 'buyer', 'baler'] as UserRole[]).map((r) => (
             <button
               key={r}
@@ -73,7 +73,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 switchRole(r);
                 showToast('Role Switched', `Active view changed to ${r}`);
               }}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize transition-colors cursor-pointer ${
+              className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize transition-colors cursor-pointer shrink-0 ${
                 user?.role === r
                   ? 'bg-[#1B382B] text-white shadow-sm'
                   : 'text-[#5E6D63] hover:text-[#19241B]'

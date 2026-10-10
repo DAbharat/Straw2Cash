@@ -184,10 +184,10 @@ export const ResidueCalculatorPage: React.FC<ResidueCalculatorPageProps> = ({ on
               </div>
 
               {/* 2 Primary Highlights */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
                   <p className="text-xs text-white/60">Recoverable Residue</p>
-                  <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums text-[#E5A812] mt-1">
+                  <p className="text-xl sm:text-3xl font-extrabold font-mono tabular-nums text-[#E5A812] mt-1">
                     <CountUpNumber value={result.recoverableResidueTons} duration={1400} decimals={1} suffix=" Tons" />
                   </p>
                   <p className="text-[11px] text-white/50 mt-1">
@@ -197,7 +197,7 @@ export const ResidueCalculatorPage: React.FC<ResidueCalculatorPageProps> = ({ on
 
                 <div className="p-4 bg-white/5 rounded-2xl border border-emerald-500/20 shadow-lg">
                   <p className="text-xs text-emerald-400">Est. Market Value</p>
-                  <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-white mt-1">
+                  <p className="text-lg sm:text-2xl font-bold font-mono tabular-nums text-white mt-1 break-words">
                     <CountUpNumber value={result.estimatedMarketValueMinInr} duration={1500} prefix="₹" /> – <CountUpNumber value={result.estimatedMarketValueMaxInr} duration={1500} prefix="₹" />
                   </p>
                   <p className="text-[11px] text-white/50 mt-1">

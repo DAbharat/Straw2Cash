@@ -48,12 +48,12 @@ export const FireRiskMap: React.FC<FireRiskMapProps> = ({
         </div>
 
         {/* Filter controls */}
-        <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl">
+        <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl overflow-x-auto max-w-full">
           {['all', 'Extreme', 'High', 'Moderate'].map((lvl) => (
             <button
               key={lvl}
               onClick={() => setFilterLevel(lvl)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 filterLevel === lvl
                   ? 'bg-[#E5A812] text-[#0D1810] shadow-md font-bold'
                   : 'text-white/60 hover:text-white'
@@ -163,16 +163,16 @@ export const FireRiskMap: React.FC<FireRiskMapProps> = ({
           </svg>
 
           {/* Map legend */}
-          <div className="absolute bottom-3 left-4 bg-black/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 text-[11px] text-white/80 flex items-center gap-3 shadow-lg">
+          <div className="absolute bottom-3 left-3 sm:left-4 max-w-[calc(100%-1.5rem)] sm:max-w-[calc(100%-2rem)] bg-black/85 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-white/15 text-[10px] sm:text-[11px] text-white/80 flex flex-wrap items-center gap-2 sm:gap-3 shadow-lg">
             <span className="font-bold text-white">Risk:</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] shadow-[0_0_8px_#EF4444] inline-block" /> Extreme
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#EF4444] shadow-[0_0_8px_#EF4444] inline-block shrink-0" /> Extreme
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#F97316] shadow-[0_0_8px_#F97316] inline-block" /> High
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#F97316] shadow-[0_0_8px_#F97316] inline-block shrink-0" /> High
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E5A812] shadow-[0_0_8px_#E5A812] inline-block" /> Moderate
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#E5A812] shadow-[0_0_8px_#E5A812] inline-block shrink-0" /> Moderate
             </span>
           </div>
         </div>

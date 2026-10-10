@@ -241,18 +241,18 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
             <button
               type="button"
               onClick={() => onNavigate('/buyer/requirements')}
-              className="px-4 py-2 text-xs font-semibold text-[#5E6D63] hover:text-[#19241B] transition-colors"
+              className="px-4 py-2.5 text-xs font-semibold text-[#5E6D63] hover:text-[#19241B] transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 bg-[#1B382B] text-white rounded-lg text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#1B382B] text-white rounded-lg text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
             >
               <span>{submitting ? 'Registering Requirement...' : 'Post Purchase Requirement'}</span>
               <ArrowRight className="w-3.5 h-3.5" />

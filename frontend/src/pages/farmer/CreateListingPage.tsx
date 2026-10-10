@@ -276,18 +276,18 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
             <button
               type="button"
               onClick={() => onNavigate('/farmer/listings')}
-              className="px-4 py-2 text-xs font-semibold text-white/60 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2.5 text-xs font-semibold text-white/60 hover:text-white transition-colors cursor-pointer text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-3 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-lg cursor-pointer disabled:opacity-50 hover:scale-102"
+              className="px-6 py-3 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-50 hover:scale-102"
             >
               <span>{submitting ? 'Submitting to Go Backend...' : 'Publish Straw Batch'}</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#E5A812]" />

@@ -161,25 +161,41 @@ export default function App() {
   };
 
   const isHome = currentPath === '/' || currentPath === '';
+  const heroRoutes = [
+    '/dashboard',
+    '/baler/dashboard',
+    '/assistant',
+    '/insights',
+    '/fire-risks',
+    '/farmer/listings',
+    '/farmer/residue-calculator',
+    '/buyer/marketplace',
+    '/baler/matches',
+    '/contracts',
+    '/impact',
+  ];
+  const hasHeroBanner = heroRoutes.includes(currentPath);
   const OTHER_PAGES_BG = 'https://framerusercontent.com/images/qQ7rFB5eVVBjturZ7t2PLrcFLI.jpg?scale-down-to=2048';
 
   return (
     <AuthProvider>
       <ToastProvider>
         <div
-          className={`min-h-screen flex flex-col bg-[#0D1810] text-white selection:bg-[#E5A812]/20 selection:text-[#E5A812] ${
+          className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#0D1810] text-white selection:bg-[#E5A812]/20 selection:text-[#E5A812] ${
             !isHome ? 'relative bg-cover bg-top bg-fixed' : ''
           }`}
           style={
             !isHome
               ? {
-                  backgroundImage: `linear-gradient(to bottom, rgba(5, 12, 8, 0.82) 0%, rgba(9, 18, 12, 0.65) 25%, rgba(6, 13, 9, 0.78) 60%, rgba(4, 9, 6, 0.94) 100%), radial-gradient(ellipse at 50% 20%, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.8) 100%), url('${OTHER_PAGES_BG}')`,
+                  backgroundImage: `linear-gradient(to bottom, rgba(5, 12, 8, 0.4) 0%, rgba(9, 18, 12, 0.65) 25%, rgba(6, 13, 9, 0.78) 60%, rgba(4, 9, 6, 0.94) 100%), radial-gradient(ellipse at 50% 20%, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.8) 100%), url('${OTHER_PAGES_BG}')`,
                 }
               : undefined
           }
         >
           {!isHome && <TopNav currentPath={currentPath} onNavigate={navigate} />}
-          <main className="flex-1 relative z-10">{renderRoute()}</main>
+          <main className={`flex-1 w-full max-w-full relative z-10 bg-transparent ${hasHeroBanner || isHome ? '' : 'pt-24 sm:pt-32'}`}>
+            {renderRoute()}
+          </main>
           <Footer onNavigate={navigate} />
         </div>
       </ToastProvider>

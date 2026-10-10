@@ -14,12 +14,29 @@
     --eco-border: #e3ded2;
   }
 
+  html {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
     font-family: var(--font-sans);
     background-color: #0D1810;
     color: #FFFFFF;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+  }
+
+  *, ::before, ::after {
+    box-sizing: border-box;
   }
 }
 
