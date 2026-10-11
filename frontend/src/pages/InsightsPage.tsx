@@ -77,18 +77,18 @@ export const InsightsPage: React.FC<InsightsPageProps> = ({ onNavigate }) => {
 
       {/* Price Trends Section */}
       <div className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-white/10 gap-2">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-white">Residue Price Trajectory (₹/Ton Delivered)</h2>
             <p className="text-xs text-white/60">Historical 5-month spot rate movements across North Indian trading hubs</p>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 w-fit">
             Current: Oct 2026 Season
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full max-w-full">
+          <table className="w-full min-w-[500px] text-left text-xs">
             <thead>
               <tr className="border-b border-white/10 text-white/60 font-semibold">
                 <th className="py-3 px-3">Timeline Month</th>
@@ -127,48 +127,70 @@ export const InsightsPage: React.FC<InsightsPageProps> = ({ onNavigate }) => {
           {demandList.map((d) => (
             <div
               key={d.district}
-              className="bg-[#0D1810]/75 backdrop-blur-md border border-white/10 hover:border-[#E5A812]/40 rounded-2xl p-5 shadow-xl transition-all space-y-3"
+              className="bg-[#0D1810]/80 backdrop-blur-md border border-white/10 hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 rounded-2xl p-6 sm:p-7 shadow-xl transition-all flex flex-col justify-between"
             >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="text-base font-bold text-white">{d.district} ({d.state})</h3>
-                  <p className="text-[11px] text-white/60 mt-0.5">{d.primaryBuyerIndustry}</p>
-                </div>
-                <div className="flex items-center gap-1 text-xs font-semibold">
+              {/* Header: City Title with Status Badge directly next to it */}
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                    {d.district} ({d.state})
+                  </h3>
                   {d.trend === 'increasing' ? (
-                    <span className="flex items-center text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                      <ArrowUpRight className="w-3.5 h-3.5" /> High Demand
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                      <ArrowUpRight className="w-3 h-3" /> High Demand
                     </span>
                   ) : d.trend === 'decreasing' ? (
-                    <span className="flex items-center text-rose-300 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full">
-                      <ArrowDownRight className="w-3.5 h-3.5" /> Surplus
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-300 bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 rounded-full">
+                      <ArrowDownRight className="w-3 h-3" /> Surplus
                     </span>
                   ) : (
-                    <span className="flex items-center text-[#E5A812] bg-[#E5A812]/15 border border-[#E5A812]/30 px-2 py-0.5 rounded-full">
-                      <Minus className="w-3.5 h-3.5" /> Balanced
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#E5A812] bg-[#E5A812]/15 border border-[#E5A812]/30 px-2 py-0.5 rounded-full">
+                      <Minus className="w-3 h-3" /> Balanced
                     </span>
                   )}
                 </div>
+                <p className="text-xs text-white/50 font-medium mt-1">
+                  {d.primaryBuyerIndustry}
+                </p>
               </div>
 
-              <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-xs space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-white/60">Industrial Demand:</span>
-                  <span className="font-mono font-bold text-white">{d.demandVolumeTons.toLocaleString()} t</span>
+              {/* Data Rows: Single list with hairlines directly on card background */}
+              <div className="mt-5 divide-y divide-white/10 text-xs">
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+                    Industrial Demand
+                  </span>
+                  <span className="font-mono font-bold text-white text-sm tabular-nums">
+                    {d.demandVolumeTons.toLocaleString()} <span className="text-xs font-normal text-white/50">t</span>
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-white/60">Harvest Supply:</span>
-                  <span className="font-mono text-white/80">{d.supplyVolumeTons.toLocaleString()} t</span>
-                </div>
-                <div className="flex justify-between pt-1 border-t border-white/10">
-                  <span className="text-white/60">Demand/Supply Ratio:</span>
-                  <span className="font-mono font-bold text-[#E5A812]">{d.demandSupplyRatio}x</span>
-                </div>
-              </div>
 
-              <div className="flex justify-between items-center text-xs pt-1">
-                <span className="text-white/60">Avg Delivered Price:</span>
-                <span className="font-mono font-bold text-[#E5A812]">₹{d.avgPriceInrPerTon}/ton</span>
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+                    Harvest Supply
+                  </span>
+                  <span className="font-mono font-bold text-white text-sm tabular-nums">
+                    {d.supplyVolumeTons.toLocaleString()} <span className="text-xs font-normal text-white/50">t</span>
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-[10px] uppercase tracking-wider text-white/60 font-semibold">
+                    Demand / Supply Ratio
+                  </span>
+                  <span className="font-mono font-extrabold text-base sm:text-lg text-[#E5A812] tabular-nums">
+                    {d.demandSupplyRatio}x
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-2.5">
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+                    Avg Delivered Price
+                  </span>
+                  <span className="font-mono font-bold text-white text-sm tabular-nums">
+                    ₹{d.avgPriceInrPerTon.toLocaleString()}<span className="text-xs font-normal text-white/50">/ton</span>
+                  </span>
+                </div>
               </div>
             </div>
           ))}

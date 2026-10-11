@@ -33,70 +33,93 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className="bg-[#0D1810]/75 backdrop-blur-md border border-white/10 rounded-2xl p-5 hover:border-[#E5A812]/50 hover:bg-[#0D1810]/85 transition-all cursor-pointer shadow-xl hover:shadow-2xl flex flex-col justify-between group"
+      className="bg-transparent backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-7 hover:border-[#E5A812]/50 hover:bg-[#0D1810]/90 transition-all cursor-pointer shadow-xl hover:shadow-2xl flex flex-col justify-between group"
     >
       <div>
-        {/* Top line: Crop type & status */}
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div>
-            <h4 className="text-base font-bold text-white group-hover:text-[#E5A812] transition-colors">{listing.cropType}</h4>
-            <div className="flex items-center gap-2 text-xs text-white/60 mt-0.5">
-              <span>{listing.condition}</span>
-              <span aria-hidden="true">·</span>
-              <span>{listing.fieldAreaAcres} Acres</span>
-            </div>
+        {/* Header: Title with Available badge right next to it, secondary text smaller & gray */}
+        <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h4 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight group-hover:text-[#E5A812] transition-colors">
+              {listing.cropType}
+            </h4>
+            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded capitalize ${getStatusColor(listing.status)}`}>
+              {listing.status}
+            </span>
           </div>
-          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded capitalize ${getStatusColor(listing.status)}`}>
-            {listing.status}
-          </span>
+          <p className="text-xs text-white/50 font-medium mt-1">
+            {listing.condition} <span className="text-white/30" aria-hidden="true">·</span> {listing.fieldAreaAcres} Acres
+          </p>
         </div>
 
-        {/* Price & Quantity highlight */}
-        <div className="my-4 p-3.5 bg-white/5 backdrop-blur-xs rounded-xl border border-white/10 flex items-center justify-between shadow-xs">
+        {/* Data sitting directly on card background: Residue on left, Rate on right, top-aligned */}
+        <div className="my-5 flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] text-white/60">Available Residue</p>
-            <p className="text-lg font-bold font-mono tabular-nums text-white flex items-center gap-1">
-              <Weight className="w-4 h-4 text-[#E5A812]" />
-              {listing.quantityTons} <span className="text-xs font-normal text-white/60">Tons</span>
+            <p className="text-[11px] uppercase tracking-wider text-white/50 font-medium">Available Residue</p>
+            <p className="text-2xl font-extrabold font-mono tabular-nums text-white mt-1 flex items-baseline gap-1.5">
+              <Weight className="w-4 h-4 text-[#E5A812] shrink-0 self-center" />
+              <span>{listing.quantityTons}</span>
+              <span className="text-xs font-normal text-white/50">Tons</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] text-white/60">Expected Rate</p>
-            <p className="text-lg font-bold font-mono tabular-nums text-[#E5A812]">
+            <p className="text-[11px] uppercase tracking-wider text-white/50 font-medium">Expected Rate</p>
+            <p className="text-2xl font-extrabold font-mono tabular-nums text-[#E5A812] mt-1">
               ₹{listing.pricePerTonExpected.toLocaleString()}
-              <span className="text-xs font-normal text-white/60">/ton</span>
+              <span className="text-xs font-normal text-white/50">/ton</span>
             </p>
           </div>
         </div>
 
-        {/* Location & Dates */}
-        <div className="space-y-1.5 text-xs text-white/70">
-          <div className="flex items-center gap-1.5 truncate">
-            <MapPin className="w-3.5 h-3.5 text-[#E5A812]/80 shrink-0" />
-            <span className="truncate">{listing.location.villageOrField}, {listing.location.district} ({listing.location.state})</span>
+        {/* Middle section: Location + Date on line 1, Moisture + CO2 on line 2, icons top-aligned */}
+        <div className="space-y-2 text-xs text-white/70">
+          {/* Line 1: Location & Date */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-x-4 gap-y-1">
+            <div className="flex items-start gap-1.5 min-w-0 flex-1">
+              <MapPin className="w-3.5 h-3.5 text-[#E5A812] shrink-0 mt-0.5" />
+              <span className="truncate" title={`${listing.location.villageOrField}, ${listing.location.district} (${listing.location.state})`}>
+                {listing.location.villageOrField}, {listing.location.district} ({listing.location.state})
+              </span>
+            </div>
+            <div className="flex items-start gap-1.5 shrink-0 text-white/60">
+              <Calendar className="w-3.5 h-3.5 text-[#E5A812] shrink-0 mt-0.5" />
+              <span>
+                Available from: {new Date(listing.availableDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-[#E5A812]/80 shrink-0" />
-            <span>Available from: {new Date(listing.availableDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Leaf className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>Moisture: <span className="font-mono tabular-nums font-medium text-white">{listing.moisturePercentage}%</span></span>
+
+          {/* Line 2: Moisture & CO2 */}
+          <div className="flex items-start gap-2.5 flex-wrap">
+            <div className="flex items-start gap-1.5">
+              <Leaf className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+              <span>
+                Moisture: <span className="font-mono tabular-nums font-semibold text-white">{listing.moisturePercentage}%</span>
+              </span>
+            </div>
             {listing.estimatedFireRiskAvoidedCo2Tons && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>Avoids <span className="font-mono tabular-nums text-emerald-400 font-semibold">{listing.estimatedFireRiskAvoidedCo2Tons}t</span> CO₂</span>
-              </>
+              <div className="flex items-start gap-1.5">
+                <span className="text-white/30" aria-hidden="true">·</span>
+                <span>
+                  Avoids <span className="font-mono tabular-nums text-emerald-400 font-bold">{listing.estimatedFireRiskAvoidedCo2Tons}t</span> CO₂
+                </span>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Action footer */}
+      {/* Footer: 'By Gurpreet Singh' and 'View Details' placed right next to each other */}
       {showActions && (
-        <div className="mt-5 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
-          <span className="text-xs text-white/50 truncate">By {listing.farmerName}</span>
-          {onRequestQuote ? (
+        <div className="mt-5 pt-3.5 border-t border-white/10 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-white/50">By {listing.farmerName}</span>
+            <span className="text-white/30" aria-hidden="true">·</span>
+            <span className="font-semibold text-[#E5A812] group-hover:underline inline-flex items-center gap-1 cursor-pointer">
+              View Details →
+            </span>
+          </div>
+
+          {onRequestQuote && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -106,10 +129,6 @@ export const ListingCard: React.FC<ListingCardProps> = ({
             >
               Request Quote
             </button>
-          ) : (
-            <span className="text-xs font-semibold text-[#E5A812] group-hover:underline inline-flex items-center gap-1">
-              View Details →
-            </span>
           )}
         </div>
       )}

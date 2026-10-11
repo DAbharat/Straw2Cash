@@ -28,13 +28,9 @@ export const FarmerMatchesPage: React.FC<FarmerMatchesPageProps> = ({ onNavigate
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="pb-4 border-b border-[#E3DED2]">
-        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C88A1B] mb-1">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Go Matching Algorithm Engine</span>
-        </div>
-        <h1 className="text-2xl font-bold text-[#19241B] tracking-tight">Matching Buyer Requirements</h1>
-        <p className="text-xs text-[#5E6D63]">
+      <div className="pb-4 border-b border-white/20">
+        <h1 className="text-2xl font-bold text-white tracking-tight">Matching Buyer Requirements</h1>
+        <p className="text-xs text-white/70">
           Automated demand pairing based on crop variety, bale type, moisture tolerance, and transport proximity
         </p>
       </div>
@@ -42,9 +38,9 @@ export const FarmerMatchesPage: React.FC<FarmerMatchesPageProps> = ({ onNavigate
       {loading ? (
         <div className="py-20 text-center text-xs text-[#5E6D63]">Running matching algorithm...</div>
       ) : matches.length === 0 ? (
-        <div className="p-12 bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl text-center">
-          <p className="text-sm font-bold text-[#19241B]">No matches currently available</p>
-          <p className="text-xs text-[#5E6D63] mt-1 mb-4">
+        <div className="p-12 bg-transparent backdrop-blur-md border border-white/50 rounded-2xl text-center">
+          <p className="text-sm font-bold text-white">No matches currently available</p>
+          <p className="text-xs text-white/70 mt-1 mb-4">
             Try creating a new straw listing with updated crop variety or check back as new buyers post requirements.
           </p>
         </div>
@@ -53,50 +49,50 @@ export const FarmerMatchesPage: React.FC<FarmerMatchesPageProps> = ({ onNavigate
           {matches.map((m) => (
             <div
               key={m.id}
-              className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 hover:border-[#245E3F]/40 transition-all shadow-sm"
+              className="bg-transparent backdrop-blur-md border border-white/50 rounded-2xl p-6 hover:border-[#68BA75]/40 transition-all shadow-sm"
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 {/* Left: Buyer details & Match score */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-[#EAF2ED] text-[#1E4530]">
+                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-white/10 text-[#68BA75]">
                       {m.compatibilityScore}% Compatibility
                     </span>
-                    <h3 className="text-base font-bold text-[#19241B]">
+                    <h3 className="text-base font-bold text-white">
                       {m.requirement.buyerOrganization}
                     </h3>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-[#5E6D63]">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-white/70">
                     <div className="flex items-center gap-1.5">
-                      <Building2 className="w-3.5 h-3.5 text-[#8A795D]" />
+                      <Building2 className="w-3.5 h-3.5 text-[#E5A812]" />
                       <span>{m.requirement.destinationLocation.facilityName}</span>
                     </div>
                     <span aria-hidden="true">·</span>
                     <div className="flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#8A795D]" />
+                      <MapPin className="w-3.5 h-3.5 text-[#E5A812]" />
                       <span>{m.distanceKm} km from your field</span>
                     </div>
                     <span aria-hidden="true">·</span>
-                    <span>Crop: <strong>{m.requirement.cropType}</strong></span>
+                    <span>Crop: <strong className="text-white">{m.requirement.cropType}</strong></span>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-[#F4F0E6] rounded-xl text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-white/5 border border-white/10 rounded-xl text-xs">
                     <div>
-                      <p className="text-[#5E6D63]">Buyer Ceiling Rate</p>
-                      <p className="font-mono font-bold text-[#19241B]">
+                      <p className="text-white/70">Buyer Ceiling Rate</p>
+                      <p className="font-mono font-bold text-white">
                         ₹{m.requirement.maxPricePerTon.toLocaleString()}/ton
                       </p>
                     </div>
                     <div>
-                      <p className="text-[#5E6D63]">Est. Freight Cost</p>
-                      <p className="font-mono font-semibold text-[#19241B]">
+                      <p className="text-white/70">Est. Freight Cost</p>
+                      <p className="font-mono font-semibold text-white">
                         ₹{m.estimatedLogisticsCostPerTon}/ton
                       </p>
                     </div>
                     <div>
-                      <p className="text-[#5E6D63]">Max Moisture Limit</p>
-                      <p className="font-mono font-semibold text-[#19241B]">
+                      <p className="text-white/70">Max Moisture Limit</p>
+                      <p className="font-mono font-semibold text-white">
                         {m.requirement.acceptableMoistureMax}%
                       </p>
                     </div>
@@ -106,8 +102,8 @@ export const FarmerMatchesPage: React.FC<FarmerMatchesPageProps> = ({ onNavigate
                 {/* Right: Action */}
                 <div className="lg:text-right flex flex-col justify-between shrink-0 space-y-3">
                   <div>
-                    <p className="text-xs text-[#5E6D63]">Target Procurement</p>
-                    <p className="text-xl font-bold font-mono tabular-nums text-[#19241B]">
+                    <p className="text-xs text-white/70">Target Procurement</p>
+                    <p className="text-xl font-bold font-mono tabular-nums text-white">
                       {m.requirement.requiredQuantityTons} Tons
                     </p>
                   </div>

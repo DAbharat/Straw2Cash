@@ -17,8 +17,21 @@ export const BalerServicesPage: React.FC<BalerServicesPageProps> = ({ onNavigate
   const [showAddModal, setShowAddModal] = useState(false);
   const [makeModel, setMakeModel] = useState('');
   const [balerType, setBalerType] = useState<BalerEquipment['balerType']>('Square Baler');
-  const [dailyCapacityTons, setDailyCapacityTons] = useState(50);
-  const [yearOfManufacture, setYearOfManufacture] = useState(2024);
+  const [dailyCapacityTons, setDailyCapacityTons] = useState<string>('50');
+  const [yearOfManufacture, setYearOfManufacture] = useState<string>('2024');
+
+  // Clean numeric input handler: preserves empty state and prevents leading-zero appending
+  const handleNumericChange = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (val === '') {
+      setter('');
+      return;
+    }
+    if (/^0\d+/.test(val)) {
+      val = val.replace(/^0+/, '');
+    }
+    setter(val);
+  };
 
   useEffect(() => {
     async function load() {
@@ -53,9 +66,9 @@ export const BalerServicesPage: React.FC<BalerServicesPageProps> = ({ onNavigate
     await balerServiceApi.addEquipment({
       balerType,
       makeModel,
-      dailyCapacityTons,
+      dailyCapacityTons: Number(dailyCapacityTons) || 0,
       fuelType: 'Tractor PTO',
-      yearOfManufacture,
+      yearOfManufacture: Number(yearOfManufacture) || 2024,
       availableFromDate: new Date().toISOString().split('T')[0],
       operationalStatus: 'Available',
     });
@@ -207,8 +220,8 @@ export const BalerServicesPage: React.FC<BalerServicesPageProps> = ({ onNavigate
 
       {/* Add Equipment Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl">
             <h3 className="text-base font-bold text-[#19241B] mb-4">Register New Agricultural Machinery</h3>
             <form onSubmit={handleAddEquipment} className="space-y-4">
               <div>
@@ -243,9 +256,10 @@ export const BalerServicesPage: React.FC<BalerServicesPageProps> = ({ onNavigate
                   <input
                     type="number"
                     min="10"
+                    placeholder="e.g. 50"
                     value={dailyCapacityTons}
-                    onChange={(e) => setDailyCapacityTons(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                    onChange={handleNumericChange(setDailyCapacityTons)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] placeholder:text-[#5E6D63]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
                   />
                 </div>
                 <div>
@@ -254,9 +268,10 @@ export const BalerServicesPage: React.FC<BalerServicesPageProps> = ({ onNavigate
                     type="number"
                     min="2015"
                     max="2026"
+                    placeholder="e.g. 2024"
                     value={yearOfManufacture}
-                    onChange={(e) => setYearOfManufacture(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                    onChange={handleNumericChange(setYearOfManufacture)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] placeholder:text-[#5E6D63]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
                   />
                 </div>
               </div>

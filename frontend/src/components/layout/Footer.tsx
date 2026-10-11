@@ -103,9 +103,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-4">
+        <div className="mt-14 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-white/50 gap-4 text-center sm:text-left">
           <p>© 2026 Straw2Cash Technologies · Inspired by Ecoland Design System</p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4">
             <span>Punjab · Haryana · Western UP Hub</span>
             <span aria-hidden="true">·</span>
             <span>Zero Open-Burning Protocol</span>

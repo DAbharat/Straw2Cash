@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FireHotspotZone } from '../../types/aiml';
-import { ShieldCheck, Wind, Flame, AlertTriangle } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 
 interface FireRiskMapProps {
   zones: FireHotspotZone[];
@@ -48,12 +48,12 @@ export const FireRiskMap: React.FC<FireRiskMapProps> = ({
         </div>
 
         {/* Filter controls */}
-        <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl">
+        <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl overflow-x-auto max-w-full">
           {['all', 'Extreme', 'High', 'Moderate'].map((lvl) => (
             <button
               key={lvl}
               onClick={() => setFilterLevel(lvl)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                 filterLevel === lvl
                   ? 'bg-[#E5A812] text-[#0D1810] shadow-md font-bold'
                   : 'text-white/60 hover:text-white'
@@ -163,31 +163,32 @@ export const FireRiskMap: React.FC<FireRiskMapProps> = ({
           </svg>
 
           {/* Map legend */}
-          <div className="absolute bottom-3 left-4 bg-black/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 text-[11px] text-white/80 flex items-center gap-3 shadow-lg">
+          <div className="absolute bottom-3 left-3 sm:left-4 max-w-[calc(100%-1.5rem)] sm:max-w-[calc(100%-2rem)] bg-black/85 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl border border-white/15 text-[10px] sm:text-[11px] text-white/80 flex flex-wrap items-center gap-2 sm:gap-3 shadow-lg">
             <span className="font-bold text-white">Risk:</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] shadow-[0_0_8px_#EF4444] inline-block" /> Extreme
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#EF4444] shadow-[0_0_8px_#EF4444] inline-block shrink-0" /> Extreme
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#F97316] shadow-[0_0_8px_#F97316] inline-block" /> High
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#F97316] shadow-[0_0_8px_#F97316] inline-block shrink-0" /> High
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#E5A812] shadow-[0_0_8px_#E5A812] inline-block" /> Moderate
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#E5A812] shadow-[0_0_8px_#E5A812] inline-block shrink-0" /> Moderate
             </span>
           </div>
         </div>
 
         {/* Selected Zone Inspector Panel */}
-        <div className="lg:col-span-4 p-5 border-t lg:border-t-0 lg:border-l border-white/10 bg-[#0D1810]/95 flex flex-col justify-between">
+        <div className="lg:col-span-4 p-5 sm:p-6 border-t lg:border-t-0 lg:border-l border-white/10 bg-[#0D1810]/95 flex flex-col justify-between">
           {selectedZone ? (
-            <div>
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+            <div className="space-y-5">
+              {/* Header: District Title & Risk Badge */}
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h4 className="text-base font-bold text-white">{selectedZone.district} District</h4>
-                  <p className="text-xs text-white/60">{selectedZone.state} Stubble Belt</p>
+                  <h4 className="text-lg sm:text-xl font-extrabold text-white tracking-tight">{selectedZone.district} District</h4>
+                  <p className="text-xs text-white/50 font-medium mt-0.5">{selectedZone.state} Stubble Belt</p>
                 </div>
                 <span
-                  className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                  className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border shrink-0 ${
                     selectedZone.riskLevel === 'Extreme'
                       ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
                       : selectedZone.riskLevel === 'High'
@@ -199,79 +200,94 @@ export const FireRiskMap: React.FC<FireRiskMapProps> = ({
                 </span>
               </div>
 
-              <div className="mt-4 space-y-3 text-xs">
-                <div className="flex items-center justify-between py-1.5 border-b border-white/10">
-                  <span className="text-white/70 flex items-center gap-1.5">
-                    <Flame className="w-3.5 h-3.5 text-rose-400" />
+              {/* Top 2-Column Grid: Large Bold Numbers for Biomass & Fires */}
+              <div className="grid grid-cols-2 gap-4 pt-1">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold block">
                     Satellite Thermal Anomalies
                   </span>
-                  <span className="font-mono font-semibold tabular-nums text-white">
-                    {selectedZone.activeThermalAnomaliesCount} fires detected
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-1.5 border-b border-white/10">
-                  <span className="text-white/70 flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-[#E5A812]" />
-                    Projected Downwind AQI (24h)
-                  </span>
-                  <span className="font-mono font-bold tabular-nums text-rose-400">
-                    {selectedZone.aqiPrediction24h} (Severe)
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-1.5 border-b border-white/10">
-                  <span className="text-white/70 flex items-center gap-1.5">
-                    <Wind className="w-3.5 h-3.5 text-emerald-400" />
-                    Wind Velocity & Bearing
-                  </span>
-                  <span className="text-right text-white font-medium">
-                    {selectedZone.predominantWindDirection}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between py-1.5 border-b border-white/10">
-                  <span className="text-white/70">Residue Biomass at Risk</span>
-                  <span className="font-mono font-bold tabular-nums text-[#E5A812]">
-                    {selectedZone.strawVolumeAtRiskTons.toLocaleString()} Tons
-                  </span>
-                </div>
-
-                <div className="pt-2">
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-white/70">Baler Mitigation Deployment</span>
-                    <span className="font-medium text-emerald-400">
-                      {selectedZone.targetedInterventionTeamAssigned ? 'Active Fleet' : 'Needed'}
+                  <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white tracking-tight">
+                      {selectedZone.activeThermalAnomaliesCount}
+                    </span>
+                    <span className="text-xs font-semibold text-rose-400">
+                      fires detected
                     </span>
                   </div>
-                  <div className="w-full bg-white/10 rounded-full h-2">
-                    <div
-                      className="bg-[#2E581F] h-2 rounded-full border border-emerald-400/40"
-                      style={{
-                        width: selectedZone.targetedInterventionTeamAssigned ? '78%' : '20%',
-                      }}
-                    />
+                </div>
+
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold block">
+                    Residue Biomass at Risk
+                  </span>
+                  <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-2xl sm:text-3xl font-extrabold font-mono text-[#E5A812] tracking-tight">
+                      {selectedZone.strawVolumeAtRiskTons.toLocaleString()}
+                    </span>
+                    <span className="text-xs font-semibold text-white/50">
+                      Tons
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {/* Action */}
-              <div className="mt-6">
+              {/* Compact Block: AQI & Wind (No icons, clean whitespace) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold block">
+                    Projected Downwind AQI (24h)
+                  </span>
+                  <p className="font-mono font-bold text-rose-400 mt-1 text-sm">
+                    {selectedZone.aqiPrediction24h} <span className="text-xs font-semibold text-rose-300/80">(Severe)</span>
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold block">
+                    Wind Velocity & Bearing
+                  </span>
+                  <p className="font-medium text-white/90 mt-1 text-xs leading-snug">
+                    {selectedZone.predominantWindDirection}
+                  </p>
+                </div>
+              </div>
+
+              {/* Baler Mitigation Deployment Progress */}
+              <div className="pt-1">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">
+                    Baler Mitigation Deployment
+                  </span>
+                  <span className="text-xs font-bold text-emerald-400">
+                    {selectedZone.targetedInterventionTeamAssigned ? 'Active Fleet' : 'Needed'}
+                  </span>
+                </div>
+                <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: selectedZone.targetedInterventionTeamAssigned ? '78%' : '20%',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Action / Mitigation Text Block with Subtle Left Border */}
+              <div className="pt-2">
                 {onDispatchTeam && !selectedZone.targetedInterventionTeamAssigned ? (
                   <button
                     onClick={() => onDispatchTeam(selectedZone.id)}
-                    className="w-full py-2.5 px-4 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                    className="w-full py-2.5 px-4 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
                   >
                     <ShieldCheck className="w-4 h-4 text-[#E5A812]" />
-                    Dispatch Baler Mobile Fleet to {selectedZone.district}
+                    <span>Dispatch Baler Fleet to {selectedZone.district}</span>
                   </button>
                 ) : (
-                  <div className="p-3 bg-emerald-950/70 border border-emerald-500/30 rounded-xl text-xs text-emerald-200">
-                    <p className="font-bold flex items-center gap-1.5 text-emerald-300">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <div className="border-l-2 border-emerald-500/40 pl-3.5 py-0.5">
+                    <p className="text-xs font-bold text-emerald-300">
                       Mitigation Operations Underway
                     </p>
-                    <p className="mt-1 text-[11px] text-emerald-200/80 leading-relaxed">
+                    <p className="mt-1 text-[11px] text-white/60 leading-relaxed">
                       4 Custom Hiring Centers dispatched with 12 high-density balers to absorb paddy stubble before field firing.
                     </p>
                   </div>

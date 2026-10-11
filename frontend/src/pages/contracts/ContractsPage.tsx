@@ -74,12 +74,12 @@ export const ContractsPage: React.FC<ContractsPageProps> = ({ onNavigate }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-6">
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl max-w-fit">
+      <div className="flex items-center gap-1 p-1 bg-black/60 border border-white/10 rounded-xl overflow-x-auto max-w-full">
         {['all', 'pending_signature', 'active', 'delivered', 'settled'].map((st) => (
           <button
             key={st}
             onClick={() => setFilter(st)}
-            className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all capitalize cursor-pointer ${
+            className={`px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all capitalize cursor-pointer whitespace-nowrap shrink-0 ${
               filter === st
                 ? 'bg-[#E5A812] text-[#0D1810] shadow-md font-bold'
                 : 'text-white/60 hover:text-white'
@@ -130,7 +130,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = ({ onNavigate }) => {
                   <p>
                     Pickup: {c.pickupLocation} → Drop: {c.dropLocation}
                   </p>
-                  <div className="flex items-center gap-4 pt-1">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
                     <span>Crop: <strong className="text-white">{c.cropType}</strong></span>
                     <span aria-hidden="true">·</span>
                     <span>Tonnage: <strong className="font-mono text-white">{c.agreedQuantityTons} Tons</strong></span>
@@ -140,7 +140,7 @@ export const ContractsPage: React.FC<ContractsPageProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Signature status badges */}
-                <div className="flex items-center gap-3 text-[11px] text-white/60">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-white/60">
                   <span className="flex items-center gap-1">
                     {c.signedByBuyer ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />

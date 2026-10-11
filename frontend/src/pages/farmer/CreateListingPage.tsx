@@ -20,10 +20,10 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
 
   const [cropType, setCropType] = useState<CropType>('Paddy (Basmati)');
   const [condition, setCondition] = useState<StrawCondition>('Square Bales');
-  const [quantityTons, setQuantityTons] = useState<number>(100);
-  const [pricePerTonExpected, setPricePerTonExpected] = useState<number>(2150);
-  const [fieldAreaAcres, setFieldAreaAcres] = useState<number>(35);
-  const [moisturePercentage, setMoisturePercentage] = useState<number>(14.0);
+  const [quantityTons, setQuantityTons] = useState<string>('');
+  const [pricePerTonExpected, setPricePerTonExpected] = useState<string>('');
+  const [fieldAreaAcres, setFieldAreaAcres] = useState<string>('');
+  const [moisturePercentage, setMoisturePercentage] = useState<string>('');
   const [villageOrField, setVillageOrField] = useState('Bhawani Garh Sector 2');
   const [district, setDistrict] = useState(user?.location.district || 'Sangrur');
   const [state, setState] = useState(user?.location.state || 'Punjab');
@@ -33,14 +33,28 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
   const [notes, setNotes] = useState('Harvested with Super SMS combine. Dry storage available.');
   const [submitting, setSubmitting] = useState(false);
 
+  // Clean numeric input handler: preserves empty state and prevents leading-zero appending
+  const handleNumericChange = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (val === '') {
+      setter('');
+      return;
+    }
+    // Remove leading zeros if followed by other digits (e.g. "0100" -> "100", "01200" -> "1200")
+    if (/^0\d+/.test(val)) {
+      val = val.replace(/^0+/, '');
+    }
+    setter(val);
+  };
+
   useEffect(() => {
     if (initialParams) {
       const qCrop = initialParams.get('crop');
       const qQty = initialParams.get('qty');
       const qAcres = initialParams.get('acres');
       if (qCrop) setCropType(qCrop as CropType);
-      if (qQty) setQuantityTons(Number(qQty));
-      if (qAcres) setFieldAreaAcres(Number(qAcres));
+      if (qQty) setQuantityTons(qQty);
+      if (qAcres) setFieldAreaAcres(qAcres);
     }
   }, [initialParams]);
 
@@ -54,10 +68,10 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
         farmerPhone: user?.phone || '+91 98721 44521',
         cropType,
         condition,
-        quantityTons,
-        pricePerTonExpected,
-        fieldAreaAcres,
-        moisturePercentage,
+        quantityTons: Number(quantityTons) || 0,
+        pricePerTonExpected: Number(pricePerTonExpected) || 0,
+        fieldAreaAcres: Number(fieldAreaAcres) || 0,
+        moisturePercentage: Number(moisturePercentage) || 0,
         location: {
           villageOrField,
           district,
@@ -71,7 +85,7 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
         notes,
       });
 
-      showToast('Straw Listing Published', `${quantityTons} Tons of ${cropType} live on marketplace`);
+      showToast('Straw Listing Published', `${quantityTons || 0} Tons of ${cropType} live on marketplace`);
       onNavigate('/farmer/listings');
     } catch {
       showToast('Failed to Create Listing', 'Please check required fields', 'error');
@@ -147,9 +161,10 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
                 type="number"
                 min="1"
                 required
+                placeholder="e.g. 100"
                 value={quantityTons}
-                onChange={(e) => setQuantityTons(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-black/50 border border-white/15 text-white rounded-xl focus:outline-none focus:border-[#E5A812] focus:ring-1 focus:ring-[#E5A812]/50"
+                onChange={handleNumericChange(setQuantityTons)}
+                className="w-full px-3 py-2 text-xs bg-black/50 border border-white/15 text-white placeholder:text-white/30 rounded-xl focus:outline-none focus:border-[#E5A812] focus:ring-1 focus:ring-[#E5A812]/50"
               />
             </div>
 
@@ -162,9 +177,10 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
                 min="500"
                 step="50"
                 required
+                placeholder="e.g. 2150"
                 value={pricePerTonExpected}
-                onChange={(e) => setPricePerTonExpected(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-black/50 border border-white/15 text-white rounded-xl focus:outline-none focus:border-[#E5A812] focus:ring-1 focus:ring-[#E5A812]/50"
+                onChange={handleNumericChange(setPricePerTonExpected)}
+                className="w-full px-3 py-2 text-xs bg-black/50 border border-white/15 text-white placeholder:text-white/30 rounded-xl focus:outline-none focus:border-[#E5A812] focus:ring-1 focus:ring-[#E5A812]/50"
               />
             </div>
 
@@ -177,9 +193,10 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
                 step="0.5"
                 min="5"
                 max="30"
+                placeholder="e.g. 14"
                 value={moisturePercentage}
-                onChange={(e) => setMoisturePercentage(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-black/50 border border-white/15 text-white rounded-xl focus:outline-none focus:border-[#E5A812] focus:ring-1 focus:ring-[#E5A812]/50"
+                onChange={handleNumericChange(setMoisturePercentage)}
+                className="w-full px-3 py-2 text-xs bg-black/50 border border-white/15 text-white placeholder:text-white/30 rounded-xl focus:outline-none focus:border-[#E5A812] focus:ring-1 focus:ring-[#E5A812]/50"
               />
             </div>
           </div>
@@ -276,18 +293,18 @@ export const CreateListingPage: React.FC<CreateListingPageProps> = ({
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
             <button
               type="button"
               onClick={() => onNavigate('/farmer/listings')}
-              className="px-4 py-2 text-xs font-semibold text-white/60 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2.5 text-xs font-semibold text-white/60 hover:text-white transition-colors cursor-pointer text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-3 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-all flex items-center gap-2 shadow-lg cursor-pointer disabled:opacity-50 hover:scale-102"
+              className="px-6 py-3 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer disabled:opacity-50 hover:scale-102"
             >
               <span>{submitting ? 'Submitting to Go Backend...' : 'Publish Straw Batch'}</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#E5A812]" />

@@ -6,7 +6,7 @@ import {
   QuoteStatus,
   ContractStatus,
 } from '../../types/contracts';
-import { UserRole } from '../../types/auth';
+import { UserRole, UserProfile } from '../../types/auth';
 import { INITIAL_QUOTES, INITIAL_CONTRACTS, INITIAL_SETTLEMENTS, INITIAL_IMPACT_SUMMARY } from '../mockData';
 
 const STORAGE_KEY_QUOTES = 's2c_quotes';
@@ -36,6 +36,68 @@ let settlements: SettlementRecord[] = getStored(STORAGE_KEY_SETTLEMENTS, INITIAL
 let impactSummary: EcologicalImpactSummary = INITIAL_IMPACT_SUMMARY;
 
 export const javaRulesApi = {
+  // Auth (Java Rules Engine Backend)
+  async login(phone: string, password?: string): Promise<{ user: UserProfile; token: string }> {
+    try {
+      const baseUrl = import.meta.env.VITE_JAVA_API?.replace(/\/$/, '') || 'http://localhost:8080';
+      const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password: password || 'farmer123' })
+      });
+      if (!res.ok) throw new Error('Login failed');
+      const data = await res.json();
+      
+      const user: UserProfile = {
+        id: data.userId,
+        name: data.name,
+        email: `${data.phone}@straw2cash.in`,
+        phone: data.phone,
+        role: (data.role?.toLowerCase() === 'baler_operator' ? 'baler' : data.role?.toLowerCase()) as UserRole,
+        location: {
+          villageOrCity: data.region,
+          district: data.region,
+          state: 'Punjab',
+          pincode: '000000'
+        },
+        primaryCrops: ['Paddy (Basmati)'],
+        createdAt: new Date().toISOString()
+      };
+      
+      return { user, token: data.token };
+    } catch (e) {
+      console.warn("Java auth service failed", e);
+      throw e;
+    }
+  },
+
+  async register(data: Partial<UserProfile>, password?: string): Promise<{ user: UserProfile; token: string }> {
+    const roleMapping: Record<string, string> = {
+      'farmer': 'FARMER',
+      'buyer': 'BUYER',
+      'baler': 'BALER_OPERATOR',
+      'authority': 'AUTHORITY'
+    };
+    
+    const baseUrl = import.meta.env.VITE_JAVA_API?.replace(/\/$/, '') || 'http://localhost:8080';
+    const res = await fetch(`${baseUrl}/api/v1/users/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phone: data.phone,
+        name: data.name || 'Agri User',
+        password: password || 'farmer123',
+        role: roleMapping[data.role || 'farmer'] || 'FARMER',
+        region: data.location?.district || 'Sangrur'
+      })
+    });
+    
+    if (!res.ok) throw new Error('Register failed');
+    const responseData = await res.json();
+    
+    return this.login(responseData.phone, password);
+  },
+
   // Quotes (Java Pricing Rules Engine)
   async getQuotes(userId?: string): Promise<PriceQuote[]> {
     if (userId) {

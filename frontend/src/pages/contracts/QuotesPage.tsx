@@ -21,11 +21,24 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
   // New quote form state if launched from a listing
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [listingId, setListingId] = useState(initialParams?.get('listingId') || 'lst_101');
-  const [offeredPrice, setOfferedPrice] = useState(Number(initialParams?.get('price')) || 2200);
-  const [quantityTons, setQuantityTons] = useState(Number(initialParams?.get('qty')) || 100);
-  const [distanceKm, setDistanceKm] = useState(45);
+  const [offeredPrice, setOfferedPrice] = useState<string>(initialParams?.get('price') || '2200');
+  const [quantityTons, setQuantityTons] = useState<string>(initialParams?.get('qty') || '100');
+  const [distanceKm, setDistanceKm] = useState<string>('45');
   const [isPreBaled, setIsPreBaled] = useState(true);
   const [submittingQuote, setSubmittingQuote] = useState(false);
+
+  // Clean numeric input handler: preserves empty state and prevents leading-zero appending
+  const handleNumericChange = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (val === '') {
+      setter('');
+      return;
+    }
+    if (/^0\d+/.test(val)) {
+      val = val.replace(/^0+/, '');
+    }
+    setter(val);
+  };
 
   useEffect(() => {
     async function load() {
@@ -51,9 +64,9 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
         listingId,
         buyerId: user?.role === 'buyer' ? user.id : 'user_buyer_1',
         farmerId: user?.role === 'farmer' ? user.id : 'user_farmer_1',
-        offeredPricePerTon: offeredPrice,
-        quantityTons,
-        distanceKm,
+        offeredPricePerTon: Number(offeredPrice) || 0,
+        quantityTons: Number(quantityTons) || 0,
+        distanceKm: Number(distanceKm) || 0,
         isPreBaled,
       });
       setQuotes([newQuote, ...quotes]);
@@ -83,18 +96,18 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DED2]">
-        <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B382B] mb-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#245E3F]" />
-            <span>Java Rules Service v2.4 Pricing Engine</span>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/20">
+        <div className="flex flex-col gap-1.5">
           <BlurRevealText
             text="Price Quotes & Escrow Formulas"
             as="h1"
-            className="text-2xl sm:text-3xl font-extrabold text-[#19241B] tracking-tight"
+            className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight block"
           />
-          <p className="text-xs text-[#5E6D63]">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
+            <ShieldCheck className="w-3.5 h-3.5 text-green-400" />
+            <span>Java Rules Service v2.4 Pricing Engine</span>
+          </div>
+          <p className="text-xs text-white/70 mt-0.5">
             Rule-governed pricing factoring freight, baling tariffs, and platform escrow deductions
           </p>
         </div>
@@ -109,11 +122,11 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-xs text-[#5E6D63]">Loading quotes from Java service...</div>
+        <div className="py-20 text-center text-xs text-white/70">Loading quotes from Java service...</div>
       ) : quotes.length === 0 ? (
-        <div className="p-16 bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl text-center">
-          <p className="text-base font-bold text-[#19241B]">No quotes currently active</p>
-          <p className="text-xs text-[#5E6D63] mt-1 mb-4">
+        <div className="p-16 bg-transparent border border-white/50 rounded-2xl text-center">
+          <p className="text-base font-bold text-white">No quotes currently active</p>
+          <p className="text-xs text-white/70 mt-1 mb-4">
             Request a quote directly from a straw listing or matching requirement.
           </p>
         </div>
@@ -122,74 +135,74 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
           {quotes.map((q) => (
             <div
               key={q.id}
-              className="bg-white/85 backdrop-blur-md border border-white/70 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_12px_35px_rgb(0,0,0,0.09)] hover:border-[#245E3F]/40 transition-all space-y-4"
+              className="bg-transparent backdrop-blur-md border border-white/50 rounded-2xl p-6 shadow-lg transition-all space-y-4"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E3DED2]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/20">
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs font-bold text-[#8A795D]">{q.id}</span>
+                  <span className="font-mono text-xs font-bold text-[#E5A812]">{q.id}</span>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded capitalize ${
                     q.status === 'accepted'
-                      ? 'bg-[#EAF2ED] text-[#1E4530]'
+                      ? 'bg-green-900/40 text-green-400 border border-green-500/30'
                       : q.status === 'rejected'
-                      ? 'bg-rose-100 text-rose-800'
-                      : 'bg-[#FEF4E8] text-[#8C4600]'
+                      ? 'bg-red-900/40 text-red-400 border border-red-500/30'
+                      : 'bg-yellow-900/40 text-yellow-400 border border-yellow-500/30'
                   }`}>
                     {q.status}
                   </span>
                 </div>
-                <p className="text-xs text-[#5E6D63]">
+                <p className="text-xs text-white/70">
                   Valid until {new Date(q.validUntil).toLocaleDateString()}
                 </p>
               </div>
 
               {/* Formula Breakdown Cards */}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
-                <div className="p-3 bg-[#F4F0E6] rounded-xl">
-                  <p className="text-[#5E6D63]">Rate & Quantity</p>
-                  <p className="font-mono font-bold text-sm text-[#19241B]">
+                <div className="p-3 bg-white/5 border border-white/50 rounded-xl">
+                  <p className="text-white/70">Rate & Quantity</p>
+                  <p className="font-mono font-bold text-sm text-white">
                     ₹{q.proposedPricePerTon} × {q.totalQuantityTons}t
                   </p>
                 </div>
-                <div className="p-3 bg-[#F4F0E6] rounded-xl">
-                  <p className="text-[#5E6D63]">Base Value</p>
-                  <p className="font-mono font-bold text-sm text-[#19241B]">
+                <div className="p-3 bg-white/5 border border-white/50 rounded-xl">
+                  <p className="text-white/70">Base Value</p>
+                  <p className="font-mono font-bold text-sm text-white">
                     ₹{q.baseAmount.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-[#F4F0E6] rounded-xl">
-                  <p className="text-[#5E6D63]">Freight & Baling</p>
-                  <p className="font-mono font-semibold text-sm text-[#5E6D63]">
+                <div className="p-3 bg-white/5 border border-white/50 rounded-xl">
+                  <p className="text-white/70">Freight & Baling</p>
+                  <p className="font-mono font-semibold text-sm text-white">
                     ₹{(q.freightEstimatePerTon + q.balingFeePerTon)}/t
                   </p>
                 </div>
-                <div className="p-3 bg-[#EAF2ED] rounded-xl border border-[#A7D1B8]">
-                  <p className="text-[#245E3F] font-bold text-[11px]">Net to Farmer (Green)</p>
-                  <p className="font-mono font-bold text-sm text-[#1B382B]">
+                <div className="p-3 bg-white/10 border border-green-500/50 rounded-xl">
+                  <p className="text-green-400 font-bold text-[11px]">Net to Farmer</p>
+                  <p className="font-mono font-bold text-sm text-white">
                     ₹{q.netPayableToFarmer.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 bg-[#F0F9FF] rounded-xl border border-[#BAE6FD]">
-                  <p className="text-[#0284C7] font-bold text-[11px]">Buyer Pays (Blue)</p>
-                  <p className="font-mono font-bold text-sm text-[#0369A1]">
+                <div className="p-3 bg-white/10 border border-blue-500/50 rounded-xl">
+                  <p className="text-blue-400 font-bold text-[11px]">Buyer Pays</p>
+                  <p className="font-mono font-bold text-sm text-white">
                     ₹{q.grossPayableByBuyer.toLocaleString()}
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-[#5E6D63]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 text-xs text-white/70">
                 <p className="italic">{q.terms}</p>
 
                 {q.status === 'pending' && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
                     <button
                       onClick={() => handleUpdateStatus(q.id, 'rejected')}
-                      className="px-3 py-1.5 border border-[#D5CFBF] text-[#5E6D63] hover:text-[#19241B] rounded-lg font-semibold transition-colors cursor-pointer"
+                      className="px-3 py-1.5 border border-white/50 text-white/70 hover:text-white rounded-lg font-semibold transition-colors cursor-pointer text-xs"
                     >
                       Decline
                     </button>
                     <button
                       onClick={() => handleUpdateStatus(q.id, 'accepted')}
-                      className="px-4 py-1.5 bg-[#1B382B] text-white rounded-lg font-semibold hover:bg-[#12261D] transition-colors cursor-pointer"
+                      className="px-4 py-1.5 bg-[#1B382B] text-white hover:bg-[#12261D] hover:text-white rounded-lg font-bold transition-colors cursor-pointer text-xs"
                     >
                       Accept & Create Contract →
                     </button>
@@ -203,82 +216,85 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
 
       {/* Quote Generation Modal */}
       {showRequestModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 max-w-lg w-full shadow-xl">
-            <h3 className="text-base font-bold text-[#19241B] mb-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="bg-transparent backdrop-blur-xl border border-white/50 rounded-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <h3 className="text-base font-bold text-white mb-1">
               Java Rules Engine Quote Request
             </h3>
-            <p className="text-xs text-[#5E6D63] mb-4">
+            <p className="text-xs text-white/70 mb-4">
               Authorize automated rate formula calculation for straw batch
             </p>
 
             <form onSubmit={handleCreateQuote} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                  <label className="block text-xs font-semibold text-white mb-1">
                     Offered Base Rate (₹/Ton)
                   </label>
                   <input
                     type="number"
                     required
+                    placeholder="e.g. 2200"
                     value={offeredPrice}
-                    onChange={(e) => setOfferedPrice(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg"
+                    onChange={handleNumericChange(setOfferedPrice)}
+                    className="w-full px-3 py-2 text-xs bg-transparent text-white placeholder:text-white/40 border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                  <label className="block text-xs font-semibold text-white mb-1">
                     Residue Volume (Tons)
                   </label>
                   <input
                     type="number"
                     required
+                    placeholder="e.g. 100"
                     value={quantityTons}
-                    onChange={(e) => setQuantityTons(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg"
+                    onChange={handleNumericChange(setQuantityTons)}
+                    className="w-full px-3 py-2 text-xs bg-transparent text-white placeholder:text-white/40 border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                  <label className="block text-xs font-semibold text-white mb-1">
                     Haul Distance (km)
                   </label>
                   <input
                     type="number"
+                    placeholder="e.g. 45"
                     value={distanceKm}
-                    onChange={(e) => setDistanceKm(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg"
+                    onChange={handleNumericChange(setDistanceKm)}
+                    className="w-full px-3 py-2 text-xs bg-transparent text-white placeholder:text-white/40 border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                  <label className="block text-xs font-semibold text-white mb-1">
                     Pre-Baled Status
                   </label>
                   <select
                     value={isPreBaled ? 'true' : 'false'}
                     onChange={(e) => setIsPreBaled(e.target.value === 'true')}
-                    className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg"
+                    className="w-full px-3 py-2 text-xs bg-transparent text-white border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-white"
                   >
-                    <option value="true">Yes (Pre-Baled)</option>
-                    <option value="false">No (Add ₹350 Baling Fee)</option>
+                    <option className="bg-[#0D1810]" value="true">Yes (Pre-Baled)</option>
+                    <option className="bg-[#0D1810]" value="false">No (Add ₹350 Baling Fee)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="p-3 bg-[#F4F0E6] rounded-xl text-xs space-y-1 text-[#5E6D63]">
+              <div className="p-3 bg-white/10 rounded-xl text-xs space-y-1 text-white/70 border border-white/20">
                 <div className="flex justify-between">
                   <span>Base Commodity:</span>
-                  <span className="font-mono text-[#19241B]">₹{(offeredPrice * quantityTons).toLocaleString()}</span>
+                  <span className="font-mono text-white">₹{((Number(offeredPrice) || 0) * (Number(quantityTons) || 0)).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Platform Fee (1.5%):</span>
-                  <span className="font-mono text-[#19241B]">₹{Math.round(offeredPrice * quantityTons * 0.015).toLocaleString()}</span>
+                  <span className="font-mono text-white">₹{Math.round((Number(offeredPrice) || 0) * (Number(quantityTons) || 0) * 0.015).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between font-bold text-[#1B382B] pt-1 border-t border-[#E3DED2]">
+                <div className="flex justify-between font-bold text-white pt-1 border-t border-white/20">
                   <span>Net Disbursed to Farmer:</span>
-                  <span className="font-mono">₹{Math.round(offeredPrice * quantityTons * 0.985).toLocaleString()}</span>
+                  <span className="font-mono">₹{Math.round((Number(offeredPrice) || 0) * (Number(quantityTons) || 0) * 0.985).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -286,14 +302,14 @@ export const QuotesPage: React.FC<QuotesPageProps> = ({ onNavigate, initialParam
                 <button
                   type="button"
                   onClick={() => setShowRequestModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#5E6D63]"
+                  className="px-4 py-2 text-xs font-semibold text-white/70 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingQuote}
-                  className="px-4 py-2 bg-[#1B382B] text-white rounded-lg text-xs font-semibold hover:bg-[#12261D]"
+                  className="px-4 py-2 bg-[#1B382B] text-white hover:bg-[#12261D] hover:text-white rounded-lg text-xs font-bold transition-colors"
                 >
                   {submittingQuote ? 'Computing Formula...' : 'Issue Formal Quote'}
                 </button>

@@ -171,45 +171,43 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        <div className="bg-white/85 backdrop-blur-md border border-white/70 rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-6 sm:p-8 flex flex-col h-[650px]">
+        <div className="bg-transparent backdrop-blur-md border border-white/50 rounded-3xl shadow-sm p-4 sm:p-8 flex flex-col h-[650px]">
           {/* Header with language picker */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3DED2] shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/20 shrink-0">
             <div>
-              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C88A1B] mb-0.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Python AI/ML Assistant (Port 8001 / Tools Engine)</span>
-              </div>
-              <h2 className="text-xl font-bold text-[#19241B]">
+              <h2 className="text-xl font-bold text-white">
                 Interactive Agronomy Consultation
               </h2>
             </div>
 
             {/* Language selector */}
-            <div className="flex items-center gap-1 p-1 bg-white/70 backdrop-blur-md rounded-xl border border-white/60 shadow-xs">
-              <Globe2 className="w-3.5 h-3.5 text-[#5E6D63] ml-2 mr-1" />
+            <div className="flex items-center gap-1 p-1 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-xs overflow-x-auto max-w-full">
+              <Globe2 className="w-3.5 h-3.5 text-white/70 ml-1.5 mr-0.5 shrink-0" />
               <button
                 onClick={() => handleLanguageChange('en')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
-                  language === 'en' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-[#5E6D63] hover:text-[#19241B]'
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
+                  language === 'en' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
                 }`}
               >
                 English
               </button>
               <button
                 onClick={() => handleLanguageChange('pa')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
-                  language === 'pa' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-[#5E6D63] hover:text-[#19241B]'
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
+                  language === 'pa' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
                 }`}
               >
-                ਪੰਜਾਬੀ (Punjabi)
+                <span>ਪੰਜਾਬੀ</span>
+                <span className="hidden sm:inline"> (Punjabi)</span>
               </button>
               <button
                 onClick={() => handleLanguageChange('hi')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
-                  language === 'hi' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-[#5E6D63] hover:text-[#19241B]'
+                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
+                  language === 'hi' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
                 }`}
               >
-                हिंदी (Hindi)
+                <span>हिंदी</span>
+                <span className="hidden sm:inline"> (Hindi)</span>
               </button>
             </div>
           </div>
@@ -230,10 +228,10 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
             )}
 
             <div
-              className={`max-w-xl rounded-2xl p-4 text-xs leading-relaxed shadow-[0_8px_30px_rgb(0,0,0,0.06)] ${
+              className={`max-w-xl rounded-2xl p-4 text-xs leading-relaxed shadow-sm ${
                 m.role === 'user'
                   ? 'bg-[#1B382B] text-white rounded-tr-none'
-                  : 'bg-white/85 backdrop-blur-md border border-white/70 text-[#19241B] rounded-tl-none'
+                  : 'bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-tl-none'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -241,7 +239,7 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
                 {m.role === 'assistant' && (
                   <button
                     onClick={() => speakText(m.content, m.language)}
-                    className="p-1 rounded-md text-[#5E6D63] hover:text-[#1B382B] hover:bg-stone-200/50 transition-colors shrink-0 cursor-pointer"
+                    className="p-1 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
                     title="Listen aloud (Text-to-Speech)"
                   >
                     <Volume2 className="w-3.5 h-3.5" />
@@ -267,8 +265,8 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
 
               {/* Suggested prompt chips */}
               {m.suggestedPrompts && m.suggestedPrompts.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-[#E3DED2]/60 space-y-1.5">
-                  <p className="text-[10px] uppercase tracking-wider font-semibold text-[#8A795D]">
+                <div className="mt-3 pt-3 border-t border-white/20 space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-[#E5A812]">
                     Suggested Inquiries:
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -276,7 +274,7 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
                       <button
                         key={idx}
                         onClick={() => handleSend(p)}
-                        className="px-2.5 py-1 bg-[#F2EDE2] hover:bg-[#E5DFD3] text-[#2D3A30] rounded-md text-[11px] transition-colors text-left cursor-pointer"
+                        className="px-2.5 py-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-md text-[11px] transition-colors text-left cursor-pointer"
                       >
                         {p}
                       </button>
@@ -299,15 +297,15 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
         ))}
 
         {loading && (
-          <div className="flex items-center gap-2 text-xs text-[#5E6D63] italic pl-11">
-            <div className="w-2 h-2 rounded-full bg-[#1B382B] animate-ping" />
+          <div className="flex items-center gap-2 text-xs text-white/70 italic pl-11">
+            <div className="w-2 h-2 rounded-full bg-white/80 animate-ping" />
             <span>Consulting Python AI service (port 8001) tools...</span>
           </div>
         )}
       </div>
 
       {/* Input Form with Voice Support */}
-      <div className="pt-3 border-t border-[#E3DED2] shrink-0">
+      <div className="pt-3 border-t border-white/20 shrink-0">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -318,10 +316,10 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
           <button
             type="button"
             onClick={toggleVoiceInput}
-            className={`p-3 rounded-xl border transition-all cursor-pointer ${
+            className={`p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer shrink-0 ${
               isListening
                 ? 'bg-rose-600 text-white border-rose-600 animate-pulse'
-                : 'bg-white border-[#D5CFBF] text-[#5E6D63] hover:text-[#1B382B] hover:border-[#1B382B]'
+                : 'bg-transparent border-white/50 text-white hover:bg-white/10'
             }`}
             title={isListening ? 'Listening... click to stop' : 'Voice Input (Punjabi / Hindi / English)'}
           >
@@ -341,14 +339,14 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
                 ? 'पराली के भाव, बेलर मशीन या सब्सिडी के बारे में पूछें...'
                 : 'Ask about straw pricing, baling logistics, residue formulas...'
             }
-            className="flex-1 px-4 py-3 text-xs bg-white border border-[#D5CFBF] rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1B382B] focus:border-[#1B382B]"
+            className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 sm:py-3 text-xs bg-transparent text-white border border-white/50 rounded-xl focus:outline-none focus:ring-1 focus:ring-white/80 focus:border-white/80 placeholder-white/50"
           />
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="px-4 py-3 bg-[#1B382B] text-white rounded-xl text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm"
+            className="px-3 sm:px-4 py-2.5 sm:py-3 bg-[#1B382B] text-white rounded-xl text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-sm shrink-0"
           >
-            <span>Send</span>
+            <span className="hidden min-[400px]:inline">Send</span>
             <Send className="w-3.5 h-3.5" />
           </button>
         </form>

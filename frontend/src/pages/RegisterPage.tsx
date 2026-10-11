@@ -17,14 +17,28 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
   const [district, setDistrict] = useState('Sangrur');
   const [state, setState] = useState('Punjab');
   const [villageOrCity, setVillageOrCity] = useState('');
-  const [farmSizeAcres, setFarmSizeAcres] = useState<number>(30);
+  const [farmSizeAcres, setFarmSizeAcres] = useState<string>('30');
   const [organizationName, setOrganizationName] = useState('');
   const [buyerType, setBuyerType] = useState<'Bio-Energy' | 'Paper Mill' | 'Ethanol Plant'>('Bio-Energy');
-  const [balerCount, setBalerCount] = useState<number>(2);
+  const [balerCount, setBalerCount] = useState<string>('2');
   const [loading, setLoading] = useState(false);
+
+  // Clean numeric input handler: preserves empty state and prevents leading-zero appending
+  const handleNumericChange = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (val === '') {
+      setter('');
+      return;
+    }
+    if (/^0\d+/.test(val)) {
+      val = val.replace(/^0+/, '');
+    }
+    setter(val);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,10 +56,10 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
           pincode: '148001',
         },
         organizationName: organizationName || (role === 'farmer' ? `${name} Farm` : undefined),
-        farmSizeAcres: role === 'farmer' ? farmSizeAcres : undefined,
+        farmSizeAcres: role === 'farmer' ? (Number(farmSizeAcres) || 0) : undefined,
         buyerType: role === 'buyer' ? buyerType : undefined,
-        balerEquipmentCount: role === 'baler' ? balerCount : undefined,
-      });
+        balerEquipmentCount: role === 'baler' ? (Number(balerCount) || 0) : undefined,
+      }, password);
 
       showToast('Registration Successful', `Account created with role ${role}`);
       onNavigate('/dashboard');
@@ -57,13 +71,13 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-xl bg-white/85 backdrop-blur-xl border border-white/70 rounded-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-xl bg-transparent backdrop-blur-xl border border-white/50 rounded-3xl p-5 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
         <div className="text-center mb-6">
           <BlurRevealText
             text="Create your Straw2Cash Account"
             as="h2"
-            className="text-2xl sm:text-3xl font-extrabold text-[#19241B] tracking-tight"
+            className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight"
           />
           <p className="text-xs text-[#5E6D63] mt-1.5">
             Join the zero-burning agricultural straw exchange
@@ -72,10 +86,10 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
 
         {/* Role Selection Tabs */}
         <div className="mb-6">
-          <label className="block text-xs font-semibold text-[#19241B] mb-2 text-center">
+          <label className="block text-xs font-semibold text-white mb-2 text-center">
             Select Your Role
           </label>
-          <div className="grid grid-cols-3 gap-2 p-1 bg-[#F0ECE1] rounded-xl">
+          <div className="grid grid-cols-3 gap-2 p-1 bg-transparent rounded-xl">
             {(['farmer', 'buyer', 'baler'] as UserRole[]).map((r) => (
               <button
                 key={r}
@@ -83,8 +97,8 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 onClick={() => setRole(r)}
                 className={`py-2 px-3 text-xs font-semibold rounded-lg capitalize transition-colors cursor-pointer ${
                   role === r
-                    ? 'bg-white text-[#1B382B] shadow-sm'
-                    : 'text-[#5E6D63] hover:text-[#19241B]'
+                    ? 'bg-transparent border border-white/50 text-white shadow-sm'
+                    : 'text-gray-500 hover:font-bold'
                 }`}
               >
                 {r === 'farmer' ? '🌾 Farmer' : r === 'buyer' ? '🏭 Buyer' : '🚜 Baler'}
@@ -96,7 +110,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#19241B] mb-1">
+              <label className="block text-xs font-semibold text-white mb-1">
                 Full Name / Legal Representative *
               </label>
               <input
@@ -105,12 +119,12 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Gurpreet Singh"
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#19241B] mb-1">
+              <label className="block text-xs font-semibold text-white mb-1">
                 Mobile Number (+91) *
               </label>
               <input
@@ -119,14 +133,14 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+91 98765 43210"
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-[#19241B] mb-1">
+              <label className="block text-xs font-semibold text-white mb-1">
                 Email Address *
               </label>
               <input
@@ -135,33 +149,47 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="farmer@agro.in"
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-semibold text-white mb-1">
+                Password *
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter strong password"
+                className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#19241B] mb-1">
+              <label className="block text-xs font-semibold text-white mb-1">
                 District (Punjab / Haryana) *
               </label>
               <select
                 value={district}
                 onChange={(e) => setDistrict(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               >
-                <option value="Sangrur">Sangrur (PB)</option>
-                <option value="Patiala">Patiala (PB)</option>
-                <option value="Ludhiana">Ludhiana (PB)</option>
-                <option value="Bathinda">Bathinda (PB)</option>
-                <option value="Tarn Taran">Tarn Taran (PB)</option>
-                <option value="Karnal">Karnal (HR)</option>
-                <option value="Kaithal">Kaithal (HR)</option>
-                <option value="Ambala">Ambala (HR)</option>
+                <option className="bg-[#19241B] text-white" value="Sangrur">Sangrur (PB)</option>
+                <option className="bg-[#19241B] text-white" value="Patiala">Patiala (PB)</option>
+                <option className="bg-[#19241B] text-white" value="Ludhiana">Ludhiana (PB)</option>
+                <option className="bg-[#19241B] text-white" value="Bathinda">Bathinda (PB)</option>
+                <option className="bg-[#19241B] text-white" value="Tarn Taran">Tarn Taran (PB)</option>
+                <option className="bg-[#19241B] text-white" value="Karnal">Karnal (HR)</option>
+                <option className="bg-[#19241B] text-white" value="Kaithal">Kaithal (HR)</option>
+                <option className="bg-[#19241B] text-white" value="Ambala">Ambala (HR)</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#19241B] mb-1">
+            <label className="block text-xs font-semibold text-white mb-1">
               Village / Focal Point / Facility Address
             </label>
             <input
@@ -169,22 +197,23 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
               value={villageOrCity}
               onChange={(e) => setVillageOrCity(e.target.value)}
               placeholder="e.g. Bhawani Garh Road"
-              className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+              className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
             />
           </div>
 
           {/* Role specific inputs */}
           {role === 'farmer' && (
             <div>
-              <label className="block text-xs font-semibold text-[#19241B] mb-1">
+              <label className="block text-xs font-semibold text-white mb-1">
                 Total Operational Landholding (Acres)
               </label>
               <input
                 type="number"
                 min="1"
+                placeholder="e.g. 30"
                 value={farmSizeAcres}
-                onChange={(e) => setFarmSizeAcres(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                onChange={handleNumericChange(setFarmSizeAcres)}
+                className="w-full px-3 py-2 text-xs text-white placeholder:text-white/40 bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
           )}
@@ -192,7 +221,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
           {role === 'buyer' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                <label className="block text-xs font-semibold text-white mb-1">
                   Plant / Company Name
                 </label>
                 <input
@@ -201,21 +230,21 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
                   placeholder="e.g. Punjab BioPower Ltd"
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                  className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                <label className="block text-xs font-semibold text-white mb-1">
                   Industry Sector
                 </label>
                 <select
                   value={buyerType}
                   onChange={(e) => setBuyerType(e.target.value as any)}
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                  className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
                 >
-                  <option value="Bio-Energy">Bio-Energy / Boiler Power</option>
-                  <option value="Paper Mill">Paper & Pulp Mill</option>
-                  <option value="Ethanol Plant">2G Bio-Ethanol Refinery</option>
+                  <option className="bg-[#19241B] text-white" value="Bio-Energy">Bio-Energy / Boiler Power</option>
+                  <option className="bg-[#19241B] text-white" value="Paper Mill">Paper & Pulp Mill</option>
+                  <option className="bg-[#19241B] text-white" value="Ethanol Plant">2G Bio-Ethanol Refinery</option>
                 </select>
               </div>
             </div>
@@ -224,7 +253,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
           {role === 'baler' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                <label className="block text-xs font-semibold text-white mb-1">
                   Center / Business Name
                 </label>
                 <input
@@ -233,19 +262,20 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
                   value={organizationName}
                   onChange={(e) => setOrganizationName(e.target.value)}
                   placeholder="e.g. Malwa Custom Hiring Center"
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                  className="w-full px-3 py-2 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#19241B] mb-1">
+                <label className="block text-xs font-semibold text-white mb-1">
                   Active Baler Machines
                 </label>
                 <input
                   type="number"
                   min="1"
+                  placeholder="e.g. 2"
                   value={balerCount}
-                  onChange={(e) => setBalerCount(Number(e.target.value))}
-                  className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                  onChange={handleNumericChange(setBalerCount)}
+                  className="w-full px-3 py-2 text-xs text-white placeholder:text-white/40 bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
                 />
               </div>
             </div>

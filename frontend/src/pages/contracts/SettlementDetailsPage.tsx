@@ -95,14 +95,14 @@ export const SettlementDetailsPage: React.FC<SettlementDetailsPageProps> = ({
       </div>
 
       {/* Hackathon Simulation Banner required by Guide */}
-      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs text-amber-900 shadow-xs">
+      <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-amber-900 shadow-xs">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
           <span className="font-semibold">
             SIMULATED FOR HACKATHON — Java Rules Service (Port 8080) Multi-Party Escrow Simulation
           </span>
         </div>
-        <span className="font-mono text-[10px] bg-amber-200/80 px-2 py-0.5 rounded font-bold">
+        <span className="font-mono text-[10px] bg-amber-200/80 px-2 py-0.5 rounded font-bold w-fit">
           simulated: true
         </span>
       </div>

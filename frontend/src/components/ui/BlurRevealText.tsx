@@ -14,6 +14,16 @@ interface BlurRevealTextProps {
   onComplete?: () => void;
 }
 
+type WordUnit = {
+  unit: string;
+  index: number;
+};
+
+type CharGroup = {
+  isSpace: boolean;
+  chars: { ch: string; index: number }[];
+};
+
 export const BlurRevealText: React.FC<BlurRevealTextProps> = ({
   text,
   as: Component = 'div',
@@ -32,14 +42,45 @@ export const BlurRevealText: React.FC<BlurRevealTextProps> = ({
   const [visibleCount, setVisibleCount] = useState(0);
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
-  // Split into units (words or chars)
-  const units = React.useMemo(() => {
-    if (mode === 'char') {
-      return text.split('');
+  // Structure tokens and calculate unit count
+  const { totalCount, wordGroups, charGroups } = React.useMemo(() => {
+    if (mode === 'word') {
+      // Split into clean words without trailing whitespaces attached to individual units
+      const words = text.trim().split(/\s+/).filter(Boolean);
+      const wordUnits: WordUnit[] = words.map((w, i) => ({
+        unit: w,
+        index: i,
+      }));
+      return {
+        totalCount: wordUnits.length,
+        wordGroups: wordUnits,
+        charGroups: [] as CharGroup[],
+      };
     }
-    // Word mode with attached space
-    const words = text.split(' ');
-    return words.map((w, i) => (i < words.length - 1 ? w + ' ' : w));
+
+    // mode === 'char'
+    // Group characters by word tokens so that characters inside a word are wrapped in
+    // `inline-block whitespace-nowrap`. This guarantees that words never split mid-word
+    // (e.g. "Farming" never has "g" breaking onto the next line by itself).
+    const parts = text.split(/(\s+)/);
+    let charIndex = 0;
+    const groups: CharGroup[] = parts.map((part) => {
+      const isSpace = /^\s+$/.test(part);
+      const chars = part.split('').map((ch) => ({
+        ch,
+        index: charIndex++,
+      }));
+      return {
+        isSpace,
+        chars,
+      };
+    });
+
+    return {
+      totalCount: charIndex,
+      wordGroups: [] as WordUnit[],
+      charGroups: groups,
+    };
   }, [text, mode]);
 
   useEffect(() => {
@@ -80,7 +121,7 @@ export const BlurRevealText: React.FC<BlurRevealTextProps> = ({
         count += 1;
         setVisibleCount(count);
 
-        if (count >= units.length) {
+        if (count >= totalCount) {
           clearInterval(interval);
           setIsTypingComplete(true);
           onComplete?.();
@@ -91,45 +132,89 @@ export const BlurRevealText: React.FC<BlurRevealTextProps> = ({
     }, delay);
 
     return () => clearTimeout(startTimeout);
-  }, [isInView, units.length, delay, staggerDelay, onComplete]);
+  }, [isInView, totalCount, delay, staggerDelay, onComplete]);
 
   return (
     <Component
       ref={containerRef as any}
-      className={`relative inline-block ${className}`}
+      className={`relative inline-block max-w-full ${className}`}
     >
-      {units.map((unit, index) => {
-        const isRevealed = index < visibleCount;
-        const isSpace = unit === ' ';
+      {mode === 'word'
+        ? wordGroups.map((g, i) => {
+            const isRevealed = g.index < visibleCount;
 
-        if (isSpace) {
-          return (
-            <span key={index} className="inline-block">
-              &nbsp;
-            </span>
-          );
-        }
+            return (
+              <React.Fragment key={g.index}>
+                <span
+                  className="inline-block whitespace-nowrap select-none"
+                  style={{
+                    opacity: isRevealed ? 1 : initialBlurVisible && isInView ? 0.22 : 0,
+                    filter: isRevealed ? 'blur(0px)' : 'blur(12px)',
+                    transform: isRevealed
+                      ? 'translateY(0px) scale(1)'
+                      : 'translateY(6px) scale(0.97)',
+                    transition:
+                      'filter 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    willChange: 'filter, opacity, transform',
+                  }}
+                >
+                  {g.unit}
+                </span>
+                {i < wordGroups.length - 1 && (
+                  <span className="inline whitespace-pre select-none"> </span>
+                )}
+              </React.Fragment>
+            );
+          })
+        : charGroups.map((group, gIdx) => {
+            if (group.isSpace) {
+              return (
+                <React.Fragment key={gIdx}>
+                  {group.chars.map(({ index }) => {
+                    const isRevealed = index < visibleCount;
+                    return (
+                      <span
+                        key={index}
+                        className="inline whitespace-pre select-none"
+                        style={{
+                          opacity: isRevealed ? 1 : initialBlurVisible && isInView ? 0.22 : 0,
+                        }}
+                      >
+                        {' '}
+                      </span>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            }
 
-        // Initially blurred and slightly faded, then typing effect clears the blur into sharp focus
-        return (
-          <span
-            key={index}
-            className="inline-block whitespace-pre-wrap select-none"
-            style={{
-              opacity: isRevealed ? 1 : initialBlurVisible && isInView ? 0.22 : 0,
-              filter: isRevealed ? 'blur(0px)' : 'blur(12px)',
-              transform: isRevealed
-                ? 'translateY(0px) scale(1)'
-                : 'translateY(6px) scale(0.97)',
-              transition:
-                'filter 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-              willChange: 'filter, opacity, transform',
-            }}
-          >
-            {unit}
-          </span>
-        );
-      })}
+            // Word token: wrap in inline-block whitespace-nowrap so the word never splits across lines
+            return (
+              <span key={gIdx} className="inline-block whitespace-nowrap">
+                {group.chars.map(({ ch, index }) => {
+                  const isRevealed = index < visibleCount;
+                  return (
+                    <span
+                      key={index}
+                      className="inline-block select-none"
+                      style={{
+                        opacity: isRevealed ? 1 : initialBlurVisible && isInView ? 0.22 : 0,
+                        filter: isRevealed ? 'blur(0px)' : 'blur(12px)',
+                        transform: isRevealed
+                          ? 'translateY(0px) scale(1)'
+                          : 'translateY(6px) scale(0.97)',
+                        transition:
+                          'filter 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'filter, opacity, transform',
+                      }}
+                    >
+                      {ch}
+                    </span>
+                  );
+                })}
+              </span>
+            );
+          })}
 
       {/* Blinking Golden Typing Cursor that follows the typing head */}
       {showCursor && !isTypingComplete && isInView && (

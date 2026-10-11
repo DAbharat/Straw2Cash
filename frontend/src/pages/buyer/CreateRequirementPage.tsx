@@ -15,9 +15,9 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
 
   const [cropType, setCropType] = useState<CropType>('Paddy (Basmati)');
   const [conditions, setConditions] = useState<StrawCondition[]>(['Square Bales', 'Round Bales']);
-  const [requiredQuantityTons, setRequiredQuantityTons] = useState<number>(500);
-  const [maxPricePerTon, setMaxPricePerTon] = useState<number>(2250);
-  const [acceptableMoistureMax, setAcceptableMoistureMax] = useState<number>(16.0);
+  const [requiredQuantityTons, setRequiredQuantityTons] = useState<string>('');
+  const [maxPricePerTon, setMaxPricePerTon] = useState<string>('');
+  const [acceptableMoistureMax, setAcceptableMoistureMax] = useState<string>('');
   const [facilityName, setFacilityName] = useState('Patiala Biomass Generation Plant II');
   const [district, setDistrict] = useState(user?.location.district || 'Patiala');
   const [state, setState] = useState(user?.location.state || 'Punjab');
@@ -25,6 +25,19 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
   const [deliveryDeadline, setDeliveryDeadline] = useState('2026-11-20');
   const [notes, setNotes] = useState('Daily receiving hours 06:00 to 22:00. Fast weighbridge processing.');
   const [submitting, setSubmitting] = useState(false);
+
+  // Clean numeric input handler: preserves empty state and prevents leading-zero appending
+  const handleNumericChange = (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+    if (val === '') {
+      setter('');
+      return;
+    }
+    if (/^0\d+/.test(val)) {
+      val = val.replace(/^0+/, '');
+    }
+    setter(val);
+  };
 
   const toggleCondition = (cond: StrawCondition) => {
     setConditions((prev) =>
@@ -47,9 +60,9 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
         buyerOrganization: user?.organizationName || 'Punjab GreenPower Biomass Energy Ltd',
         cropType,
         conditionPreference: conditions,
-        requiredQuantityTons,
-        maxPricePerTon,
-        acceptableMoistureMax,
+        requiredQuantityTons: Number(requiredQuantityTons) || 0,
+        maxPricePerTon: Number(maxPricePerTon) || 0,
+        acceptableMoistureMax: Number(acceptableMoistureMax) || 0,
         deliveryDeadline,
         destinationLocation: {
           facilityName,
@@ -62,7 +75,7 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
         notes,
       });
 
-      showToast('Requirement Posted', `${requiredQuantityTons} Tons purchase order active`);
+      showToast('Requirement Posted', `${requiredQuantityTons || 0} Tons purchase order active`);
       onNavigate('/buyer/requirements');
     } catch {
       showToast('Submission Failed', 'Unable to create requirement', 'error');
@@ -116,9 +129,10 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
                 min="10"
                 step="10"
                 required
+                placeholder="e.g. 500"
                 value={requiredQuantityTons}
-                onChange={(e) => setRequiredQuantityTons(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                onChange={handleNumericChange(setRequiredQuantityTons)}
+                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] placeholder:text-[#5E6D63]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
           </div>
@@ -159,9 +173,10 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
                 min="1000"
                 step="50"
                 required
+                placeholder="e.g. 2250"
                 value={maxPricePerTon}
-                onChange={(e) => setMaxPricePerTon(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                onChange={handleNumericChange(setMaxPricePerTon)}
+                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] placeholder:text-[#5E6D63]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
 
@@ -175,9 +190,10 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
                 min="8"
                 max="25"
                 required
+                placeholder="e.g. 16.0"
                 value={acceptableMoistureMax}
-                onChange={(e) => setAcceptableMoistureMax(Number(e.target.value))}
-                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
+                onChange={handleNumericChange(setAcceptableMoistureMax)}
+                className="w-full px-3 py-2 text-xs bg-white border border-[#D5CFBF] placeholder:text-[#5E6D63]/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B]"
               />
             </div>
           </div>
@@ -241,18 +257,18 @@ export const CreateRequirementPage: React.FC<CreateRequirementPageProps> = ({ on
             />
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3">
+          <div className="pt-2 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
             <button
               type="button"
               onClick={() => onNavigate('/buyer/requirements')}
-              className="px-4 py-2 text-xs font-semibold text-[#5E6D63] hover:text-[#19241B] transition-colors"
+              className="px-4 py-2.5 text-xs font-semibold text-[#5E6D63] hover:text-[#19241B] transition-colors text-center"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 bg-[#1B382B] text-white rounded-lg text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 bg-[#1B382B] text-white rounded-lg text-xs font-semibold hover:bg-[#12261D] transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
             >
               <span>{submitting ? 'Registering Requirement...' : 'Post Purchase Requirement'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
