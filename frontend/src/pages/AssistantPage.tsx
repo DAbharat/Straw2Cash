@@ -2,11 +2,41 @@ import React, { useState, useEffect } from 'react';
 import { pythonAiMlApi } from '../lib/api/pythonService';
 import { AssistantChatMessage } from '../types/aiml';
 import { PageHeroBanner } from '../components/layout/PageHeroBanner';
-import { Sparkles, Send, Bot, User, Globe2, Mic, MicOff, Volume2, Wrench, Check } from 'lucide-react';
+import { Sparkles, Send, Bot, User, Globe2, Mic, MicOff, Volume2, Wrench, RotateCcw } from 'lucide-react';
 
 interface AssistantPageProps {
   onNavigate: (path: string) => void;
 }
+
+const INITIAL_GREETINGS: Record<'en' | 'hi' | 'pa', { content: string; suggestedPrompts: string[] }> = {
+  en: {
+    content:
+      'Welcome to the Straw2Cash Agronomy & Market Assistant. I can assist you with residue estimation formulas, prevailing district mandi/biomass plant prices, baler machine dispatch, and guaranteed escrow contract flows in English, Hindi, or Punjabi.',
+    suggestedPrompts: [
+      'What is the current market rate for square bales in Sangrur?',
+      'How do I calculate recoverable straw from 35 acres of Basmati?',
+      'What are the government penalties for stubble burning in Punjab?',
+    ],
+  },
+  pa: {
+    content:
+      'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਜੀ! ਮੈਂ ਸਟ੍ਰਾਅ ਟੂ ਕੈਸ਼ ਦਾ ਏ.ਆਈ. ਸਹਾਇਕ ਹਾਂ। ਮੈਂ ਤੁਹਾਨੂੰ ਪਰਾਲੀ ਦੇ ਮੌਜੂਦਾ ਮੰਡੀ ਭਾਅ, ਖੇਤ ਵਿੱਚੋਂ ਪਰਾਲੀ ਦਾ ਅੰਦਾਜ਼ਾ ਲਗਾਉਣ, ਬੇਲਰ ਮਸ਼ੀਨ ਬੁੱਕ ਕਰਨ ਅਤੇ ਬਾਇਓ-ਮਾਸ ਪਲਾਂਟਾਂ ਨਾਲ ਕੰਟਰੈਕਟ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।',
+    suggestedPrompts: [
+      '35 ਏਕੜ ਬਾਸਮਤੀ ਝੋਨੇ ਵਿੱਚੋਂ ਕਿੰਨੀ ਪਰਾਲੀ ਬਣ ਸਕਦੀ ਹੈ?',
+      'ਸੰਗਰੂਰ ਤੇ ਪਟਿਆਲਾ ਵਿੱਚ ਪਰਾਲੀ ਦੀਆਂ ਗੰਢਾਂ ਦਾ ਕੀ ਰੇਟ ਚੱਲ ਰਿਹਾ ਹੈ?',
+      'ਸੁਪਰ ਐਸ.ਐਮ.ਐਸ ਅਤੇ ਬੇਲਰ ਮਸ਼ੀਨ ਕਿਵੇਂ ਬੁੱਕ ਕਰੀਏ?',
+    ],
+  },
+  hi: {
+    content:
+      'नमस्ते! मैं स्ट्रॉ2कैश का कृषि सहायक हूँ। मैं आपको पराली अवशेष का सही अनुमान लगाने, नजदीकी बेलर खोजने, बायो-एनर्जी खरीदारों से जुड़ने और डिजिटल अनुबंध में मदद कर सकता हूँ।',
+    suggestedPrompts: [
+      '35 एकड़ बासमती धान से कितनी पराली (स्ट्रॉ) मिलेगी?',
+      'संगरूर और करनाल में बेलर का किराया और पराली का भाव क्या है?',
+      'खरीदार (बायर्स) से पेमेंट सुरक्षित कैसे मिलती है?',
+    ],
+  },
+};
 
 export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
   const [language, setLanguage] = useState<'en' | 'hi' | 'pa'>('en');
@@ -14,21 +44,18 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
   const [speechSupported, setSpeechSupported] = useState(false);
   const [messages, setMessages] = useState<AssistantChatMessage[]>([
     {
-      id: 'init_1',
+      id: 'init_en',
       role: 'assistant',
-      content:
-        'Welcome to the Straw2Cash Agronomy & Market Assistant. I can assist you with residue estimation formulas, prevailing district mandi/biomass plant prices, baler machine dispatch, and guaranteed escrow contract flows in English, Hindi, or Punjabi.',
+      content: INITIAL_GREETINGS.en.content,
       timestamp: new Date().toISOString(),
       language: 'en',
-      suggestedPrompts: [
-        'What is the current market rate for square bales in Sangrur?',
-        'How do I calculate recoverable straw from 35 acres of Basmati?',
-        'What are the government penalties for stubble burning in Punjab?',
-      ],
+      suggestedPrompts: INITIAL_GREETINGS.en.suggestedPrompts,
     },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const hasUserSentMessage = messages.some((m) => m.role === 'user');
 
   useEffect(() => {
     if (typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
@@ -115,42 +142,35 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
 
   const handleLanguageChange = (lang: 'en' | 'hi' | 'pa') => {
     setLanguage(lang);
-    let greeting = '';
-    let prompts: string[] = [];
-
-    if (lang === 'pa') {
-      greeting = 'ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਜੀ! ਮੈਂ ਸਟ੍ਰਾਅ ਟੂ ਕੈਸ਼ ਦਾ ਏ.ਆਈ. ਸਹਾਇਕ ਹਾਂ। ਮੈਂ ਤੁਹਾਨੂੰ ਪਰਾਲੀ ਦੇ ਮੌਜੂਦਾ ਮੰਡੀ ਭਾਅ, ਖੇਤ ਵਿੱਚੋਂ ਪਰਾਲੀ ਦਾ ਅੰਦਾਜ਼ਾ ਲਗਾਉਣ, ਬੇਲਰ ਮਸ਼ੀਨ ਬੁੱਕ ਕਰਨ ਅਤੇ ਬਾਇਓ-ਮਾਸ ਪਲਾਂਟਾਂ ਨਾਲ ਕੰਟਰੈਕਟ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰ ਸਕਦਾ ਹਾਂ।';
-      prompts = [
-        '35 ਏਕੜ ਬਾਸਮਤੀ ਝੋਨੇ ਵਿੱਚੋਂ ਕਿੰਨੀ ਪਰਾਲੀ ਬਣ ਸਕਦੀ ਹੈ?',
-        'ਸੰਗਰੂਰ ਤੇ ਪਟਿਆਲਾ ਵਿੱਚ ਪਰਾਲੀ ਦੀਆਂ ਗੰਢਾਂ ਦਾ ਕੀ ਰੇਟ ਚੱਲ ਰਿਹਾ ਹੈ?',
-        'ਸੁਪਰ ਐਸ.ਐਮ.ਐਸ ਅਤੇ ਬੇਲਰ ਮਸ਼ੀਨ ਕਿਵੇਂ ਬੁੱਕ ਕਰੀਏ?',
-      ];
-    } else if (lang === 'hi') {
-      greeting = 'नमस्ते! मैं स्ट्रॉ2कैश का कृषि सहायक हूँ। मैं आपको पराली अवशेष का सही अनुमान लगाने, नजदीकी बेलर खोजने, बायो-एनर्जी खरीदारों से जुड़ने और डिजिटल अनुबंध में मदद कर सकता हूँ।';
-      prompts = [
-        '35 एकड़ बासमती धान से कितनी पराली (स्ट्रॉ) मिलेगी?',
-        'संगरूर और करनाल में बेलर का किराया और पराली का भाव क्या है?',
-        'खरीदार (बायर्स) से पेमेंट सुरक्षित कैसे मिलती है?',
-      ];
-    } else {
-      greeting = 'Welcome to the Straw2Cash Agronomy Assistant. How can I assist your crop residue marketing today?';
-      prompts = [
-        'What is the current market rate for square bales in Sangrur?',
-        'How do I calculate recoverable straw from 35 acres of Basmati?',
-      ];
+    // If user hasn't sent any message yet, replace initial welcome with the selected language
+    if (!hasUserSentMessage) {
+      const info = INITIAL_GREETINGS[lang];
+      setMessages([
+        {
+          id: `init_${lang}`,
+          role: 'assistant',
+          content: info.content,
+          timestamp: new Date().toISOString(),
+          language: lang,
+          suggestedPrompts: info.suggestedPrompts,
+        },
+      ]);
     }
+  };
 
-    setMessages((prev) => [
-      ...prev,
+  const handleResetChat = () => {
+    const info = INITIAL_GREETINGS[language];
+    setMessages([
       {
-        id: `lang_change_${Date.now()}`,
+        id: `init_${Date.now()}`,
         role: 'assistant',
-        content: greeting,
+        content: info.content,
         timestamp: new Date().toISOString(),
-        language: lang,
-        suggestedPrompts: prompts,
+        language,
+        suggestedPrompts: info.suggestedPrompts,
       },
     ]);
+    setInput('');
   };
 
   return (
@@ -180,35 +200,47 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
               </h2>
             </div>
 
-            {/* Language selector */}
-            <div className="flex items-center gap-1 p-1 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-xs overflow-x-auto max-w-full">
-              <Globe2 className="w-3.5 h-3.5 text-white/70 ml-1.5 mr-0.5 shrink-0" />
+            {/* Header controls: Reset + Language selector */}
+            <div className="flex items-center gap-2 flex-wrap">
               <button
-                onClick={() => handleLanguageChange('en')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
-                  language === 'en' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
-                }`}
+                onClick={handleResetChat}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl transition-colors cursor-pointer shadow-xs"
+                title="Start a new consultation with fresh AI recommendations"
               >
-                English
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">New Chat</span>
               </button>
-              <button
-                onClick={() => handleLanguageChange('pa')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
-                  language === 'pa' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
-                }`}
-              >
-                <span>ਪੰਜਾਬੀ</span>
-                <span className="hidden sm:inline"> (Punjabi)</span>
-              </button>
-              <button
-                onClick={() => handleLanguageChange('hi')}
-                className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
-                  language === 'hi' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
-                }`}
-              >
-                <span>हिंदी</span>
-                <span className="hidden sm:inline"> (Hindi)</span>
-              </button>
+
+              {/* Language selector */}
+              <div className="flex items-center gap-1 p-1 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-xs overflow-x-auto max-w-full">
+                <Globe2 className="w-3.5 h-3.5 text-white/70 ml-1.5 mr-0.5 shrink-0" />
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
+                    language === 'en' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('pa')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
+                    language === 'pa' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  <span>ਪੰਜਾਬੀ</span>
+                  <span className="hidden sm:inline"> (Punjabi)</span>
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('hi')}
+                  className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer shrink-0 border border-transparent ${
+                    language === 'hi' ? 'bg-[#1B382B] text-white font-bold shadow-xs' : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  <span>हिंदी</span>
+                  <span className="hidden sm:inline"> (Hindi)</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -263,8 +295,8 @@ export const AssistantPage: React.FC<AssistantPageProps> = ({ onNavigate }) => {
                 </div>
               )}
 
-              {/* Suggested prompt chips */}
-              {m.suggestedPrompts && m.suggestedPrompts.length > 0 && (
+              {/* Suggested prompt chips: only shown initially when chat is fresh */}
+              {!hasUserSentMessage && m.suggestedPrompts && m.suggestedPrompts.length > 0 && (
                 <div className="mt-3 pt-3 border-t border-white/20 space-y-1.5">
                   <p className="text-[10px] uppercase tracking-wider font-semibold text-[#E5A812]">
                     Suggested Inquiries:

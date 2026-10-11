@@ -34,13 +34,17 @@ export const ContractDetailsPage: React.FC<ContractDetailsPageProps> = ({
     load();
   }, [contractId]);
 
-  const handleSignContract = async () => {
+  const handleSignContract = async (signingRole?: 'farmer' | 'buyer' | 'baler') => {
     if (!contract) return;
     setSigning(true);
     try {
-      const updated = await javaRulesApi.signContract(contract.id, role);
+      const activeRole = signingRole || (!contract.signedByFarmer ? 'farmer' : !contract.signedByBuyer ? 'buyer' : role);
+      const updated = await javaRulesApi.signContract(contract.id, activeRole);
       setContract(updated);
-      showToast('Digital Signature Registered', `Signed and recorded on digital ledger as ${role}`);
+      showToast(
+        'Digital Signature Registered',
+        `Signed as ${activeRole.toUpperCase()}. Contract is now ${updated.status.toUpperCase()}!`
+      );
     } catch {
       showToast('Signing Error', 'Unable to complete signature', 'error');
     } finally {
@@ -63,13 +67,13 @@ export const ContractDetailsPage: React.FC<ContractDetailsPageProps> = ({
   };
 
   if (loading) {
-    return <div className="py-20 text-center text-xs text-[#5E6D63]">Loading contract details...</div>;
+    return <div className="py-20 text-center text-xs text-white/70">Loading contract details...</div>;
   }
 
   if (!contract) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <p className="text-base font-bold text-[#19241B]">Contract Not Found</p>
+        <p className="text-base font-bold text-white">Contract Not Found</p>
         <button
           onClick={() => onNavigate('/contracts')}
           className="mt-4 px-4 py-2 bg-[#1B382B] text-white rounded-lg text-xs"
@@ -80,160 +84,247 @@ export const ContractDetailsPage: React.FC<ContractDetailsPageProps> = ({
     );
   }
 
-  const isSignedByMe =
-    (role === 'farmer' && contract.signedByFarmer) ||
-    (role === 'buyer' && contract.signedByBuyer) ||
-    (role === 'baler' && contract.signedByBaler);
+  const isFullySigned = contract.signedByFarmer && contract.signedByBuyer;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => onNavigate('/contracts')}
-          className="p-1.5 text-[#5E6D63] hover:text-[#19241B] rounded-lg transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div>
-          <div className="flex items-center gap-2">
-            <BlurRevealText
-              text={contract.contractNumber}
-              as="h1"
-              className="text-2xl sm:text-3xl font-extrabold text-[#19241B] tracking-tight"
-            />
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded capitalize bg-[#EAF2ED] text-[#1E4530]">
-              {contract.status.replace('_', ' ')}
-            </span>
-          </div>
-          <p className="text-xs text-[#5E6D63] mt-0.5">
-            Governed by Java Rules Engine v2.4 · Created {new Date(contract.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Contract Agreement */}
-        <div className="lg:col-span-8 bg-white/85 backdrop-blur-md border border-white/70 rounded-2xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.06)] space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-[#E3DED2]">
-            <h2 className="text-base font-bold text-[#19241B]">Agricultural Crop Residue Supply Agreement</h2>
-            <ShieldCheck className="w-5 h-5 text-[#245E3F]" />
-          </div>
-
-          {/* Parties */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div className="p-4 bg-[#F4F0E6] rounded-xl border border-[#E3DED2]">
-              <p className="text-[11px] font-semibold text-[#8A795D] uppercase">The Producer (Farmer)</p>
-              <p className="font-bold text-sm text-[#19241B] mt-1">{contract.farmerName}</p>
-              <p className="text-[#5E6D63] mt-0.5">Pickup: {contract.pickupLocation}</p>
-              <p className="text-[11px] font-mono mt-2 text-[#245E3F]">
-                {contract.signedByFarmer ? `✓ Signed on ${new Date(contract.signedByFarmerAt!).toLocaleDateString()}` : '⏳ Pending Signature'}
-              </p>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => onNavigate('/contracts')}
+            className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <BlurRevealText
+                text={contract.contractNumber}
+                as="h1"
+                className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight"
+              />
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full capitalize border ${
+                contract.status === 'active'
+                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                  : 'bg-[#E5A812]/15 text-[#E5A812] border-[#E5A812]/30'
+              }`}>
+                {contract.status.replace('_', ' ')}
+              </span>
             </div>
-
-            <div className="p-4 bg-[#F4F0E6] rounded-xl border border-[#E3DED2]">
-              <p className="text-[11px] font-semibold text-[#8A795D] uppercase">The Off-Taker (Buyer)</p>
-              <p className="font-bold text-sm text-[#19241B] mt-1">{contract.buyerName}</p>
-              <p className="text-[#5E6D63] mt-0.5">Delivery: {contract.dropLocation}</p>
-              <p className="text-[11px] font-mono mt-2 text-[#245E3F]">
-                {contract.signedByBuyer ? `✓ Signed on ${new Date(contract.signedByBuyerAt!).toLocaleDateString()}` : '⏳ Pending Signature'}
-              </p>
-            </div>
-          </div>
-
-          {/* Agreed Specs Table */}
-          <div className="space-y-3 text-xs">
-            <h3 className="font-bold text-sm text-[#19241B]">Agreed Terms & Conditions</h3>
-            <div className="divide-y divide-[#E3DED2] border border-[#E3DED2] rounded-xl overflow-hidden bg-white">
-              <div className="p-3 flex justify-between">
-                <span className="text-[#5E6D63]">Residue Commodity</span>
-                <span className="font-bold text-[#19241B]">{contract.cropType}</span>
-              </div>
-              <div className="p-3 flex justify-between">
-                <span className="text-[#5E6D63]">Contracted Volume</span>
-                <span className="font-bold font-mono tabular-nums text-[#19241B]">{contract.agreedQuantityTons} Metric Tons</span>
-              </div>
-              <div className="p-3 flex justify-between">
-                <span className="text-[#5E6D63]">Unit Price (Delivered Basis)</span>
-                <span className="font-bold font-mono tabular-nums text-[#19241B]">₹{contract.unitPricePerTon.toLocaleString()} / Ton</span>
-              </div>
-              <div className="p-3 flex justify-between">
-                <span className="text-[#5E6D63]">Maximum Allowable Moisture</span>
-                <span className="font-bold font-mono text-[#19241B]">{contract.moistureThresholdPercent}% Max</span>
-              </div>
-              <div className="p-3 flex justify-between">
-                <span className="text-[#5E6D63]">Pickup Window Schedule</span>
-                <span className="font-medium text-[#19241B]">{contract.pickupScheduleStart} to {contract.pickupScheduleEnd}</span>
-              </div>
-              <div className="p-3 flex justify-between bg-[#FAF8F3]">
-                <span className="font-bold text-[#19241B]">Total Guaranteed Escrow Commitment</span>
-                <span className="font-bold font-mono tabular-nums text-base text-[#1B382B]">
-                  ₹{contract.totalContractValue.toLocaleString()}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Legal statement */}
-          <div className="text-[11px] text-[#7A877B] leading-relaxed p-4 bg-[#F2EDE2] rounded-xl">
-            <p>
-              Under this contract, funds are held in automated multi-sig escrow and automatically disbursed upon digital weighbridge certification at destination. Both parties agree that no open field burning will occur on the harvest parcel.
+            <p className="text-xs text-white/70 mt-1">
+              Created on {new Date(contract.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
 
-        {/* Action Panel */}
-        <div className="lg:col-span-4 space-y-5">
-          <div className="bg-[#FAF8F3] border border-[#E3DED2] rounded-2xl p-6 shadow-sm space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#19241B]">
-              Signature & Execution
-            </h3>
+        {/* Quick Sign Action in Header if Pending */}
+        {!isFullySigned && (
+          <button
+            onClick={() => handleSignContract(!contract.signedByFarmer ? 'farmer' : 'buyer')}
+            disabled={signing}
+            className="px-4 py-2 bg-[#E5A812] hover:bg-[#d4960d] text-[#0D1810] rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 cursor-pointer shadow-lg hover:scale-105 active:scale-95 shrink-0 self-start sm:self-auto"
+          >
+            <FileCheck className="w-4 h-4 text-[#0D1810]" />
+            <span>
+              {signing
+                ? 'Registering Signature...'
+                : !contract.signedByFarmer
+                ? 'Sign as Farmer'
+                : 'Sign as Buyer'}
+            </span>
+          </button>
+        )}
+      </div>
 
-            {isSignedByMe ? (
-              <div className="p-4 bg-[#EAF2ED] border border-[#BFD5C6] rounded-xl text-xs text-[#1E4530] space-y-1">
-                <p className="font-bold flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-[#245E3F]" />
-                  Signed by you as {role}
-                </p>
-                <p className="text-[11px] text-[#37614A]">
-                  Your authorization has been recorded cryptographically on the platform ledger.
-                </p>
-              </div>
-            ) : (
-              <button
-                onClick={handleSignContract}
-                disabled={signing}
-                className="w-full py-3 px-4 bg-[#1B382B] text-white rounded-xl text-xs font-bold hover:bg-[#12261D] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
-              >
-                <FileCheck className="w-4 h-4" />
-                <span>{signing ? 'Signing Contract...' : `Sign Digitally as ${role}`}</span>
-              </button>
-            )}
+      {/* Main Contract Agreement */}
+      <div className="bg-transparent backdrop-blur-xl border border-white/50 rounded-3xl p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] space-y-6 text-white">
+        <div className="flex items-center justify-between pb-4 border-b border-white/20">
+          <h2 className="text-base sm:text-lg font-bold text-white">Agricultural Crop Residue Supply Agreement</h2>
+          <ShieldCheck className="w-5 h-5 text-[#E5A812]" />
+        </div>
 
-            {/* Lifecycle advancement: Mark Delivered */}
-            {contract.status === 'active' && (
-              <div className="pt-4 border-t border-[#E3DED2] space-y-2">
-                <p className="text-xs text-[#5E6D63]">Field Baler & Logistics Status:</p>
-                <button
-                  onClick={handleMarkDelivered}
-                  className="w-full py-2.5 px-3 bg-[#245E3F] text-white rounded-lg text-xs font-semibold hover:bg-[#1B4A31] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Truck className="w-4 h-4" />
-                  <span>Verify Weighbridge & Trigger Settlement</span>
-                </button>
-              </div>
-            )}
+        {/* Parties with Direct In-Card Signing */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          {/* Farmer Card */}
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/20 backdrop-blur-md flex flex-col justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-[#E5A812] uppercase tracking-wider">The Producer (Farmer)</p>
+              <p className="font-bold text-base text-white mt-1">{contract.farmerName}</p>
+              <p className="text-white/70 mt-0.5">Pickup: {contract.pickupLocation}</p>
+            </div>
 
-            {contract.settlementId && (
-              <div className="pt-4 border-t border-[#E3DED2]">
-                <button
-                  onClick={() => onNavigate(`/settlements/${contract.settlementId}`)}
-                  className="w-full py-2.5 px-3 bg-[#C88A1B] text-white rounded-lg text-xs font-semibold hover:bg-[#A67114] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  <span>View Settlement Disbursement →</span>
-                </button>
-              </div>
-            )}
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+              {contract.signedByFarmer ? (
+                <span className="text-[11px] font-mono flex items-center gap-1.5 text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Signed on {new Date(contract.signedByFarmerAt!).toLocaleDateString()}</span>
+                </span>
+              ) : (
+                <>
+                  <span className="text-[11px] font-mono text-amber-400/90 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    Pending Signature
+                  </span>
+                  <button
+                    onClick={() => handleSignContract('farmer')}
+                    disabled={signing}
+                    className="px-3.5 py-1.5 bg-[#E5A812] hover:bg-[#d4960d] text-[#0D1810] font-extrabold rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-md hover:scale-105 active:scale-95"
+                    title="Click to sign contract as farmer"
+                  >
+                    <FileCheck className="w-3.5 h-3.5 text-[#0D1810]" />
+                    <span>Sign Here</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
+
+          {/* Buyer Card */}
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/20 backdrop-blur-md flex flex-col justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-[#E5A812] uppercase tracking-wider">The Off-Taker (Buyer)</p>
+              <p className="font-bold text-base text-white mt-1">{contract.buyerName}</p>
+              <p className="text-white/70 mt-0.5">Delivery: {contract.dropLocation}</p>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+              {contract.signedByBuyer ? (
+                <span className="text-[11px] font-mono flex items-center gap-1.5 text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Signed on {new Date(contract.signedByBuyerAt!).toLocaleDateString()}</span>
+                </span>
+              ) : (
+                <>
+                  <span className="text-[11px] font-mono text-amber-400/90 flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    Pending Signature
+                  </span>
+                  <button
+                    onClick={() => handleSignContract('buyer')}
+                    disabled={signing}
+                    className="px-3.5 py-1.5 bg-[#E5A812] hover:bg-[#d4960d] text-[#0D1810] font-extrabold rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-md hover:scale-105 active:scale-95"
+                    title="Click to sign contract as buyer"
+                  >
+                    <FileCheck className="w-3.5 h-3.5 text-[#0D1810]" />
+                    <span>Sign Here</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Agreed Specs Table */}
+        <div className="space-y-3 text-xs">
+          <h3 className="font-bold text-xs uppercase tracking-wider text-[#E5A812]">Agreed Terms & Conditions</h3>
+          <div className="divide-y divide-white/10 border border-white/20 rounded-2xl overflow-hidden bg-white/5 backdrop-blur-md">
+            <div className="p-3.5 sm:p-4 flex justify-between items-center">
+              <span className="text-white/70">Residue Commodity</span>
+              <span className="font-bold text-white">{contract.cropType}</span>
+            </div>
+            <div className="p-3.5 sm:p-4 flex justify-between items-center">
+              <span className="text-white/70">Contracted Volume</span>
+              <span className="font-bold font-mono tabular-nums text-white">{contract.agreedQuantityTons} Metric Tons</span>
+            </div>
+            <div className="p-3.5 sm:p-4 flex justify-between items-center">
+              <span className="text-white/70">Unit Price (Delivered Basis)</span>
+              <span className="font-bold font-mono tabular-nums text-white">₹{contract.unitPricePerTon.toLocaleString()} / Ton</span>
+            </div>
+            <div className="p-3.5 sm:p-4 flex justify-between items-center">
+              <span className="text-white/70">Maximum Allowable Moisture</span>
+              <span className="font-bold font-mono text-white">{contract.moistureThresholdPercent}% Max</span>
+            </div>
+            <div className="p-3.5 sm:p-4 flex justify-between items-center">
+              <span className="text-white/70">Pickup Window Schedule</span>
+              <span className="font-medium text-white">{contract.pickupScheduleStart} to {contract.pickupScheduleEnd}</span>
+            </div>
+            <div className="p-4 sm:p-5 flex justify-between items-center bg-white/10 border-t border-white/20">
+              <span className="font-bold text-white text-sm">Total Guaranteed Escrow Commitment</span>
+              <span className="font-extrabold font-mono tabular-nums text-lg sm:text-xl text-[#E5A812]">
+                ₹{contract.totalContractValue.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Legal statement */}
+        <div className="text-xs text-white/70 leading-relaxed p-4 bg-white/5 border border-white/15 rounded-2xl">
+          <p>
+            Under this contract, funds are held in automated multi-sig escrow and automatically disbursed upon digital weighbridge certification at destination. Both parties agree that no open field burning will occur on the harvest parcel.
+          </p>
+        </div>
+
+        {/* Execution & Action Area */}
+        <div className="pt-4 border-t border-white/20">
+          {!isFullySigned ? (
+            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-amber-500/10 border border-[#E5A812]/30">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#E5A812]/20 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 text-[#E5A812]" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white">Action Required: Digital Signature Pending</p>
+                  <p className="text-[11px] text-white/70">
+                    {!contract.signedByFarmer && !contract.signedByBuyer
+                      ? 'Signatures from both the producer (farmer) and off-taker (buyer) are required to activate this agreement.'
+                      : !contract.signedByFarmer
+                      ? 'Producer signature is required to ratify this escrow agreement and initiate dispatch.'
+                      : 'Off-taker signature is required to ratify this escrow agreement and lock escrow funds.'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {!contract.signedByFarmer && (
+                  <button
+                    onClick={() => handleSignContract('farmer')}
+                    disabled={signing}
+                    className="px-5 py-2.5 bg-[#E5A812] hover:bg-[#d4960d] text-[#0D1810] font-extrabold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+                  >
+                    <FileCheck className="w-4 h-4 text-[#0D1810]" />
+                    <span>{signing ? 'Signing...' : 'Sign as Farmer'}</span>
+                  </button>
+                )}
+                {!contract.signedByBuyer && (
+                  <button
+                    onClick={() => handleSignContract('buyer')}
+                    disabled={signing}
+                    className="px-5 py-2.5 bg-[#E5A812] hover:bg-[#d4960d] text-[#0D1810] font-extrabold rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+                  >
+                    <FileCheck className="w-4 h-4 text-[#0D1810]" />
+                    <span>{signing ? 'Signing...' : 'Sign as Buyer'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+              <div className="flex items-center gap-2 text-xs text-emerald-400">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>Contract fully ratified and active on platform escrow ledger.</span>
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                {contract.status === 'active' && (
+                  <button
+                    onClick={handleMarkDelivered}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-[#2E581F] hover:bg-[#244818] text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2 cursor-pointer border border-[#E5A812]/40 shadow-lg hover:scale-105"
+                  >
+                    <Truck className="w-4 h-4 text-[#E5A812]" />
+                    <span>Verify Weighbridge & Trigger Settlement</span>
+                  </button>
+                )}
+
+                {contract.settlementId && (
+                  <button
+                    onClick={() => onNavigate(`/settlements/${contract.settlementId}`)}
+                    className="w-full sm:w-auto px-5 py-2.5 bg-[#E5A812] hover:bg-[#d4960d] text-[#0D1810] font-extrabold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                  >
+                    <span>View Settlement Disbursement →</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

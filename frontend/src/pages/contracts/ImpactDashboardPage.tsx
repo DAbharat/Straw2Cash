@@ -76,21 +76,7 @@ export const ImpactDashboardPage: React.FC<ImpactDashboardPageProps> = ({ onNavi
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 space-y-8 text-white">
 
-      {/* Authority Methodology & Simulation Banner */}
-      {/* <div className="p-4 bg-emerald-950/70 backdrop-blur-md border border-emerald-500/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-xl">
-        <div>
-          <p className="font-bold text-emerald-200 flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Authority Environmental Ledger (Java Rules Service · GET /api/v1/impact/summary)</span>
-          </p>
-          <p className="text-[11px] text-emerald-300/80 mt-0.5">
-            Methodology Note: CO₂ avoided calculated using 1.5 t CO₂e per tonne of crop residue diverted from in-field open incineration.
-          </p>
-        </div>
-        <span className="font-mono text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full font-bold whitespace-nowrap">
-          SIMULATED FOR HACKATHON
-        </span>
-      </div> */}
+
 
       {/* Hero Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">

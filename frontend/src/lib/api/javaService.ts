@@ -130,9 +130,17 @@ export const javaRulesApi = {
   },
 
   // Quotes (Java Pricing Rules Engine)
-  async getQuotes(userId?: string): Promise<PriceQuote[]> {
+  async getQuotes(userId?: string, role?: string): Promise<PriceQuote[]> {
     if (userId) {
-      return quotes.filter((q) => q.buyerId === userId || q.farmerId === userId);
+      const filtered = quotes.filter((q) => q.buyerId === userId || q.farmerId === userId);
+      if (filtered.length > 0) return filtered;
+      if (role === 'buyer') {
+        const roleQuotes = quotes.filter((q) => q.buyerId === 'user_buyer_1' || q.buyerId === userId);
+        if (roleQuotes.length > 0) return roleQuotes;
+      } else if (role === 'farmer') {
+        const roleQuotes = quotes.filter((q) => q.farmerId === 'user_farmer_1' || q.farmerId === userId);
+        if (roleQuotes.length > 0) return roleQuotes;
+      }
     }
     return [...quotes];
   },
@@ -178,7 +186,7 @@ export const javaRulesApi = {
       grossPayableByBuyer,
       validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
       status: 'pending',
-      terms: 'Pricing determined by Java Rules Engine v2.4. Escrow deposit mandatory within 24h of confirmation.',
+      terms: 'Escrow deposit mandatory within 24h of contract confirmation.',
       createdAt: new Date().toISOString(),
     };
 
@@ -201,11 +209,23 @@ export const javaRulesApi = {
   },
 
   // Contracts
-  async getContracts(userId?: string): Promise<ContractRecord[]> {
+  async getContracts(userId?: string, role?: string): Promise<ContractRecord[]> {
     if (userId) {
-      return contracts.filter(
+      const filtered = contracts.filter(
         (c) => c.farmerId === userId || c.buyerId === userId || c.balerId === userId
       );
+      if (filtered.length > 0) return filtered;
+      // If user is logged in with a custom/new ID, fallback to contracts matching their role
+      if (role === 'buyer') {
+        const roleContracts = contracts.filter((c) => c.buyerId === 'user_buyer_1' || c.buyerId === userId);
+        if (roleContracts.length > 0) return roleContracts;
+      } else if (role === 'farmer') {
+        const roleContracts = contracts.filter((c) => c.farmerId === 'user_farmer_1' || c.farmerId === userId);
+        if (roleContracts.length > 0) return roleContracts;
+      } else if (role === 'baler') {
+        const roleContracts = contracts.filter((c) => c.balerId === 'user_baler_1' || c.balerId === userId);
+        if (roleContracts.length > 0) return roleContracts;
+      }
     }
     return [...contracts];
   },
