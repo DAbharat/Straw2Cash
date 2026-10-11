@@ -9,7 +9,7 @@ export AWS_ACCOUNT_ID=458526671159
 export ECR_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/straw2cash-rules-service
 export ECS_CLUSTER=straw2cash-cluster
 export ECS_SERVICE=straw2cash-rules-service
-export ALB_URL=http://straw2cash-alb-1083388150.ap-south-1.elb.amazonaws.com
+export ALB_URL=https://straw2cash.duckdns.org
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'

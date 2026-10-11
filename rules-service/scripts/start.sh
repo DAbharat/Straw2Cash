@@ -3,7 +3,7 @@ cat > scripts/start.sh << 'SCRIPT_EOF'
 # Start ECS task (morning routine)
 
 export AWS_REGION=ap-south-1
-export ALB_URL=http://straw2cash-alb-1083388150.ap-south-1.elb.amazonaws.com
+export ALB_URL=https://straw2cash.duckdns.org
 
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
