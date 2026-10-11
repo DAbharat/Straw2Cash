@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/health").permitAll()
                         .requestMatchers("/api/v1/status").permitAll()   // ← also add this
+                        .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/impact/summary").hasRole("AUTHORITY")

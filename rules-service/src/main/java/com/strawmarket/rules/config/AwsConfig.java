@@ -4,11 +4,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
+import software.amazon.awssdk.services.sns.SnsClient;
 
 import java.net.URI;
 
@@ -24,13 +26,20 @@ public class AwsConfig {
     @Bean
     public DynamoDbClient dynamoDbClient() {
         DynamoDbClientBuilder builder = DynamoDbClient.builder()
-                .region(Region.of(region))
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("local", "local")));   // DynamoDB Local ignores these
+                .region(Region.of(region));
 
         if (dynamoEndpoint != null && !dynamoEndpoint.isBlank()) {
-            builder.endpointOverride(URI.create(dynamoEndpoint));
+            // ─── LOCAL MODE (DynamoDB Local) ───
+            builder
+                    .endpointOverride(URI.create(dynamoEndpoint))
+                    .credentialsProvider(StaticCredentialsProvider.create(
+                            AwsBasicCredentials.create("local", "local")));
+        } else {
+            // ─── AWS MODE (real DynamoDB) ───
+            // Uses the ECS task role automatically via the default chain
+            builder.credentialsProvider(DefaultCredentialsProvider.create());
         }
+
         return builder.build();
     }
 
@@ -40,12 +49,12 @@ public class AwsConfig {
                 .dynamoDbClient(client)
                 .build();
     }
+
     @Bean
-    public software.amazon.awssdk.services.sns.SnsClient snsClient() {
-        return software.amazon.awssdk.services.sns.SnsClient.builder()
-                .region(software.amazon.awssdk.regions.Region.of(region))
-                .credentialsProvider(software.amazon.awssdk.auth.credentials.StaticCredentialsProvider.create(
-                        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("local", "local")))
+    public SnsClient snsClient() {
+        return SnsClient.builder()
+                .region(Region.of(region))
+                .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
     }
 }
