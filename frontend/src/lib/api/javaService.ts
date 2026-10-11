@@ -39,7 +39,8 @@ export const javaRulesApi = {
   // Auth (Java Rules Engine Backend)
   async login(phone: string, password?: string): Promise<{ user: UserProfile; token: string }> {
     try {
-      const baseUrl = import.meta.env.VITE_JAVA_API?.replace(/\/$/, '') || 'http://localhost:8080';
+      const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+      const baseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
       const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,18 +49,25 @@ export const javaRulesApi = {
       if (!res.ok) throw new Error('Login failed');
       const data = await res.json();
       
+      const effectivePhone = data.phone || data.phoneNumber || data.mobile || phone;
+      const effectiveEmail = data.email && !data.email.includes('undefined') 
+        ? data.email 
+        : `${effectivePhone}@straw2cash.in`;
+
       const user: UserProfile = {
-        id: data.userId,
-        name: data.name,
-        email: `${data.phone}@straw2cash.in`,
-        phone: data.phone,
-        role: (data.role?.toLowerCase() === 'baler_operator' ? 'baler' : data.role?.toLowerCase()) as UserRole,
+        id: data.userId || `user_${Date.now()}`,
+        name: data.name || 'Gurpreet Singh',
+        email: effectiveEmail,
+        phone: effectivePhone,
+        role: (data.role?.toLowerCase() === 'baler_operator' ? 'baler' : data.role?.toLowerCase()) as UserRole || 'farmer',
         location: {
-          villageOrCity: data.region,
-          district: data.region,
+          villageOrCity: data.region || 'PB',
+          district: data.region || 'Sangrur',
           state: 'Punjab',
-          pincode: '000000'
+          pincode: '148001'
         },
+        organizationName: data.organizationName || 'Brar Natural Farm Co-Op',
+        farmSizeAcres: data.farmSizeAcres || 35,
         primaryCrops: ['Paddy (Basmati)'],
         createdAt: new Date().toISOString()
       };
@@ -79,7 +87,8 @@ export const javaRulesApi = {
       'authority': 'AUTHORITY'
     };
     
-    const baseUrl = import.meta.env.VITE_JAVA_API?.replace(/\/$/, '') || 'http://localhost:8080';
+    const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+    const baseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
     const res = await fetch(`${baseUrl}/api/v1/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -95,7 +104,29 @@ export const javaRulesApi = {
     if (!res.ok) throw new Error('Register failed');
     const responseData = await res.json();
     
-    return this.login(responseData.phone, password);
+    return this.login(responseData.phone || data.phone || '', password);
+  },
+
+  async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+    try {
+      const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+      const baseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
+      const token = localStorage.getItem('s2c_auth_token') || localStorage.getItem('straw2cash_token');
+      await fetch(`${baseUrl}/api/v1/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          name: updates.name,
+          phone: updates.phone,
+          region: updates.location?.district || updates.location?.villageOrCity || 'PB'
+        })
+      });
+    } catch (e) {
+      console.warn("Java rules api updateProfile error:", e);
+    }
   },
 
   // Quotes (Java Pricing Rules Engine)

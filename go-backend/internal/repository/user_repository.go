@@ -74,6 +74,7 @@ func (r *userRepository) UpdateUser(ctx context.Context, id, name, email, phone,
 		Email:        toPgText(email),
 		Phone:        phone,
 		PasswordHash: passwordHash,
+		IsActive:     true,
 	}
 	res, err := r.queries.UpdateUser(ctx, arg)
 	return res, handleError(err)

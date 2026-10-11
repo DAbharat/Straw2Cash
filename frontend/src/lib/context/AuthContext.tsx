@@ -25,7 +25,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed: UserProfile = JSON.parse(stored);
+        const loginPhone = localStorage.getItem('s2c_login_phone') || '9000000001';
+        if (!parsed.phone || parsed.phone === 'undefined') {
+          parsed.phone = loginPhone;
+        }
+        if (!parsed.email || parsed.email.includes('undefined')) {
+          parsed.email = `${parsed.phone || loginPhone}@straw2cash.in`;
+        }
+        return parsed;
+      }
     } catch {}
     // Default to the first farmer user
     return INITIAL_USERS[0];
@@ -53,26 +63,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, token]);
 
   const login = async (emailOrPhone: string, passwordOrRole?: string, role?: UserRole) => {
+    localStorage.setItem('s2c_login_phone', emailOrPhone);
     const isBaler = role === 'baler' || passwordOrRole === 'baler';
     if (isBaler) {
       const res = await goBackendApi.login(emailOrPhone, passwordOrRole === 'baler' ? 'baler123' : passwordOrRole);
-      setUser(res.user);
+      const userPhone = res.user.phone || emailOrPhone;
+      const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+        ? res.user.email 
+        : `${userPhone}@straw2cash.in`;
+      const resolvedUser = { ...res.user, phone: userPhone, email: userEmail };
+      setUser(resolvedUser);
       setToken(res.token);
     } else {
       const res = await javaRulesApi.login(emailOrPhone, passwordOrRole);
-      setUser(res.user);
+      const userPhone = res.user.phone || emailOrPhone;
+      const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+        ? res.user.email 
+        : `${userPhone}@straw2cash.in`;
+      const resolvedUser = { ...res.user, phone: userPhone, email: userEmail };
+      setUser(resolvedUser);
       setToken(res.token);
     }
   };
 
   const register = async (data: Partial<UserProfile>, password?: string) => {
+    if (data.phone) {
+      localStorage.setItem('s2c_login_phone', data.phone);
+    }
     if (data.role === 'baler') {
       const res = await goBackendApi.register(data, password);
-      setUser(res.user);
+      const userPhone = res.user.phone || data.phone || '';
+      const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+        ? res.user.email 
+        : `${userPhone}@straw2cash.in`;
+      setUser({ ...res.user, phone: userPhone, email: userEmail });
       setToken(res.token);
     } else {
       const res = await javaRulesApi.register(data, password);
-      setUser(res.user);
+      const userPhone = res.user.phone || data.phone || '';
+      const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+        ? res.user.email 
+        : `${userPhone}@straw2cash.in`;
+      setUser({ ...res.user, phone: userPhone, email: userEmail });
       setToken(res.token);
     }
   };
@@ -95,8 +127,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return;
-    const updated = await goBackendApi.updateProfile(user.id, updates);
-    setUser(updated);
+    const merged = { ...user, ...updates };
+    const updated = await goBackendApi.updateProfile(user.id, merged);
+    const finalUser = { ...merged, ...updated };
+    setUser(finalUser);
+    if (finalUser.phone) {
+      localStorage.setItem('s2c_login_phone', finalUser.phone);
+    }
   };
 
   return (
