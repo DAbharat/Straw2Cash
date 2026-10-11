@@ -53,13 +53,17 @@ class Settings(BaseSettings):
     UPSTREAM_TIMEOUT_SECONDS: float = 5.0
 
     # AI Model Provider Configuration
-    # Options: "mock" (offline/zero-cost demo), "bedrock" (Amazon Bedrock), "ollama" (local)
-    MODEL_PROVIDER: Literal["mock", "bedrock", "ollama"] = "mock"
+    # Options: "mock" (offline/zero-cost demo), "bedrock" (Amazon Bedrock), "ollama" (local), "gemini" (Google Gemini)
+    MODEL_PROVIDER: Literal["mock", "bedrock", "ollama", "gemini"] = "mock"
     BEDROCK_MODEL_ID: str = "anthropic.claude-3-haiku-20240307-v1:0"
     BEDROCK_REGION: str = "ap-south-1"  # Mumbai region default for lowest latency
     AWS_ACCESS_KEY_ID: Optional[str] = None
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
     AWS_SESSION_TOKEN: Optional[str] = None
+
+    # Google Gemini API
+    GEMINI_API_KEY: Optional[str] = None
+    GEMINI_MODEL: str = "gemini-1.5-flash"
 
     # Local Ollama fallback
     OLLAMA_BASE_URL: str = "http://localhost:11434"

@@ -3,7 +3,7 @@ import { useAuth } from '../lib/context/AuthContext';
 import { useToast } from '../lib/context/ToastContext';
 import { UserRole } from '../types/auth';
 import { BlurRevealText } from '../components/ui/BlurRevealText';
-import { ArrowRight, Check, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface LoginPageProps {
   onNavigate: (path: string) => void;
@@ -12,8 +12,8 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const { login } = useAuth();
   const { showToast } = useToast();
-  const [identifier, setIdentifier] = useState('9000000001');
-  const [password, setPassword] = useState('farmer123');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('farmer');
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +57,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               className="w-full px-3.5 py-2.5 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B] focus:border-[#1B382B] font-mono"
-              placeholder="e.g. 9000000001"
+              placeholder="Enter registered phone number"
             />
           </div>
 
@@ -71,7 +71,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3.5 py-2.5 text-xs text-white bg-transparent border border-white/50 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#1B382B] focus:border-[#1B382B]"
-              placeholder="e.g. farmer123"
+              placeholder="Enter password"
             />
           </div>
 

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../lib/context/AuthContext';
-import { UserRole } from '../../types/auth';
-import { ChevronDown, Sparkles, User, LogOut, Menu, X } from 'lucide-react';
+import { ChevronDown, Sparkles, LogOut, Menu, X } from 'lucide-react';
 
 interface TopNavProps {
   currentPath: string;
@@ -9,8 +8,7 @@ interface TopNavProps {
 }
 
 export const TopNav: React.FC<TopNavProps> = ({ currentPath, onNavigate }) => {
-  const { user, role, switchRole, logout, isAuthenticated } = useAuth();
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
+  const { user, role, logout, isAuthenticated } = useAuth();
   const [pagesMenuOpen, setPagesMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -171,19 +169,8 @@ export const TopNav: React.FC<TopNavProps> = ({ currentPath, onNavigate }) => {
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
 
 
-            {/* If on landing page (isHome), always show the Get Started Now button matching the design */}
-            {isHome ? (
-              <button
-                onClick={() => onNavigate('/login')}
-                className="inline-flex bg-[#2E581F] hover:bg-[#254A18] text-white pl-4 sm:pl-5 pr-2 py-2 sm:py-2 rounded-full font-bold text-xs sm:text-sm items-center gap-2.5 sm:gap-3 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.35)] hover:shadow-2xl cursor-pointer whitespace-nowrap hover:scale-102 border border-white/15 active:scale-98"
-              >
-                <span>Get Started Now</span>
-                <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-inner">
-                  →
-                </span>
-              </button>
-            ) : isAuthenticated ? (
-              /* Authenticated actions on inner app pages */
+            {isAuthenticated ? (
+              /* Authenticated actions: Dashboard, Profile, and Logout */
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   onClick={() => onNavigate('/dashboard')}
@@ -198,15 +185,26 @@ export const TopNav: React.FC<TopNavProps> = ({ currentPath, onNavigate }) => {
                 >
                   {user?.name ? user.name[0] : 'U'}
                 </button>
+                <button
+                  onClick={() => {
+                    logout();
+                    onNavigate('/login');
+                  }}
+                  className="hidden sm:inline-flex px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full bg-transparent hover:bg-white/10 text-white text-xs font-semibold border border-white/20 transition-all cursor-pointer backdrop-blur-md items-center gap-1.5"
+                  title="Log out"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-white/80" />
+                  <span>Logout</span>
+                </button>
               </div>
             ) : (
-              /* Unauthenticated on inner pages */
+              /* Unauthenticated users: Get Started Now */
               <button
-                onClick={() => onNavigate('/register')}
-                className="hidden sm:inline-flex bg-[#2E581F] hover:bg-[#254A18] text-white pl-4 sm:pl-5 pr-2 py-2 rounded-full font-bold text-xs sm:text-sm items-center gap-2 sm:gap-2.5 transition-all shadow-lg hover:shadow-xl cursor-pointer whitespace-nowrap hover:scale-102 border border-white/10"
+                onClick={() => onNavigate('/login')}
+                className="hidden sm:inline-flex bg-[#2E581F] hover:bg-[#254A18] text-white pl-4 sm:pl-5 pr-2 py-2 sm:py-2 rounded-full font-bold text-xs sm:text-sm items-center gap-2.5 sm:gap-3 transition-all shadow-[0_4px_20px_rgba(0,0,0,0.35)] hover:shadow-2xl cursor-pointer whitespace-nowrap hover:scale-102 border border-white/15 active:scale-98"
               >
                 <span>Get Started Now</span>
-                <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs sm:text-sm shrink-0">
+                <span className="w-6 sm:w-7 h-6 sm:h-7 rounded-full bg-[#E5A812] text-[#0D1810] flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-inner">
                   →
                 </span>
               </button>

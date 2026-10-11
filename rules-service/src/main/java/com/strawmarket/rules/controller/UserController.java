@@ -27,4 +27,14 @@ public class UserController {
     public ResponseEntity<UserResponse> me() {
         return ResponseEntity.ok(userService.getById(CurrentUser.userId()));
     }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateProfile(@RequestBody com.strawmarket.rules.model.dto.UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.updateProfile(CurrentUser.userId(), request));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMe(@RequestBody com.strawmarket.rules.model.dto.UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.updateProfile(CurrentUser.userId(), request));
+    }
 }

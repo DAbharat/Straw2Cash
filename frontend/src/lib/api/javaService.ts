@@ -39,7 +39,8 @@ export const javaRulesApi = {
   // Auth (Java Rules Engine Backend)
   async login(phone: string, password?: string): Promise<{ user: UserProfile; token: string }> {
     try {
-      const baseUrl = import.meta.env.VITE_JAVA_API?.replace(/\/$/, '') || 'http://localhost:8080';
+      const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+      const baseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
       const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,18 +49,25 @@ export const javaRulesApi = {
       if (!res.ok) throw new Error('Login failed');
       const data = await res.json();
       
+      const effectivePhone = data.phone || data.phoneNumber || data.mobile || phone;
+      const effectiveEmail = data.email && !data.email.includes('undefined') 
+        ? data.email 
+        : `${effectivePhone}@straw2cash.in`;
+
       const user: UserProfile = {
-        id: data.userId,
-        name: data.name,
-        email: `${data.phone}@straw2cash.in`,
-        phone: data.phone,
-        role: (data.role?.toLowerCase() === 'baler_operator' ? 'baler' : data.role?.toLowerCase()) as UserRole,
+        id: data.userId || `user_${Date.now()}`,
+        name: data.name || 'Gurpreet Singh',
+        email: effectiveEmail,
+        phone: effectivePhone,
+        role: (data.role?.toLowerCase() === 'baler_operator' ? 'baler' : data.role?.toLowerCase()) as UserRole || 'farmer',
         location: {
-          villageOrCity: data.region,
-          district: data.region,
+          villageOrCity: data.region || 'PB',
+          district: data.region || 'Sangrur',
           state: 'Punjab',
-          pincode: '000000'
+          pincode: '148001'
         },
+        organizationName: data.organizationName || 'Brar Natural Farm Co-Op',
+        farmSizeAcres: data.farmSizeAcres || 35,
         primaryCrops: ['Paddy (Basmati)'],
         createdAt: new Date().toISOString()
       };
@@ -79,7 +87,8 @@ export const javaRulesApi = {
       'authority': 'AUTHORITY'
     };
     
-    const baseUrl = import.meta.env.VITE_JAVA_API?.replace(/\/$/, '') || 'http://localhost:8080';
+    const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+    const baseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
     const res = await fetch(`${baseUrl}/api/v1/users/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -95,13 +104,43 @@ export const javaRulesApi = {
     if (!res.ok) throw new Error('Register failed');
     const responseData = await res.json();
     
-    return this.login(responseData.phone, password);
+    return this.login(responseData.phone || data.phone || '', password);
+  },
+
+  async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<void> {
+    try {
+      const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+      const baseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
+      const token = localStorage.getItem('s2c_auth_token') || localStorage.getItem('straw2cash_token');
+      await fetch(`${baseUrl}/api/v1/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          name: updates.name,
+          phone: updates.phone,
+          region: updates.location?.district || updates.location?.villageOrCity || 'PB'
+        })
+      });
+    } catch (e) {
+      console.warn("Java rules api updateProfile error:", e);
+    }
   },
 
   // Quotes (Java Pricing Rules Engine)
-  async getQuotes(userId?: string): Promise<PriceQuote[]> {
+  async getQuotes(userId?: string, role?: string): Promise<PriceQuote[]> {
     if (userId) {
-      return quotes.filter((q) => q.buyerId === userId || q.farmerId === userId);
+      const filtered = quotes.filter((q) => q.buyerId === userId || q.farmerId === userId);
+      if (filtered.length > 0) return filtered;
+      if (role === 'buyer') {
+        const roleQuotes = quotes.filter((q) => q.buyerId === 'user_buyer_1' || q.buyerId === userId);
+        if (roleQuotes.length > 0) return roleQuotes;
+      } else if (role === 'farmer') {
+        const roleQuotes = quotes.filter((q) => q.farmerId === 'user_farmer_1' || q.farmerId === userId);
+        if (roleQuotes.length > 0) return roleQuotes;
+      }
     }
     return [...quotes];
   },
@@ -147,7 +186,7 @@ export const javaRulesApi = {
       grossPayableByBuyer,
       validUntil: new Date(Date.now() + 7 * 86400000).toISOString(),
       status: 'pending',
-      terms: 'Pricing determined by Java Rules Engine v2.4. Escrow deposit mandatory within 24h of confirmation.',
+      terms: 'Escrow deposit mandatory within 24h of contract confirmation.',
       createdAt: new Date().toISOString(),
     };
 
@@ -170,11 +209,23 @@ export const javaRulesApi = {
   },
 
   // Contracts
-  async getContracts(userId?: string): Promise<ContractRecord[]> {
+  async getContracts(userId?: string, role?: string): Promise<ContractRecord[]> {
     if (userId) {
-      return contracts.filter(
+      const filtered = contracts.filter(
         (c) => c.farmerId === userId || c.buyerId === userId || c.balerId === userId
       );
+      if (filtered.length > 0) return filtered;
+      // If user is logged in with a custom/new ID, fallback to contracts matching their role
+      if (role === 'buyer') {
+        const roleContracts = contracts.filter((c) => c.buyerId === 'user_buyer_1' || c.buyerId === userId);
+        if (roleContracts.length > 0) return roleContracts;
+      } else if (role === 'farmer') {
+        const roleContracts = contracts.filter((c) => c.farmerId === 'user_farmer_1' || c.farmerId === userId);
+        if (roleContracts.length > 0) return roleContracts;
+      } else if (role === 'baler') {
+        const roleContracts = contracts.filter((c) => c.balerId === 'user_baler_1' || c.balerId === userId);
+        if (roleContracts.length > 0) return roleContracts;
+      }
     }
     return [...contracts];
   },

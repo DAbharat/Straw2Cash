@@ -10,7 +10,7 @@ interface ContractsPageProps {
 }
 
 export const ContractsPage: React.FC<ContractsPageProps> = ({ onNavigate }) => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [contracts, setContracts] = useState<ContractRecord[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
@@ -19,14 +19,14 @@ export const ContractsPage: React.FC<ContractsPageProps> = ({ onNavigate }) => {
     async function load() {
       setLoading(true);
       try {
-        const data = await javaRulesApi.getContracts(user?.id);
+        const data = await javaRulesApi.getContracts(user?.id, role);
         setContracts(data);
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, [user?.id]);
+  }, [user?.id, role]);
 
   const filtered = filter === 'all'
     ? contracts
@@ -182,11 +182,21 @@ export const ContractsPage: React.FC<ContractsPageProps> = ({ onNavigate }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    if ((c.status === 'delivered' || c.status === 'settled') && c.settlementId) {
+                      onNavigate(`/settlements/${c.settlementId}`);
+                      return;
+                    }
                     onNavigate(`/contracts/${c.id}`);
                   }}
                   className="px-4 py-2 bg-[#2E581F] hover:bg-[#244818] border border-[#E5A812]/30 text-white rounded-full text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-md group-hover:scale-102"
                 >
-                  <span>Inspect Terms & Sign</span>
+                  <span>
+                    {c.status === 'pending_signature'
+                      ? 'Review Terms & Sign'
+                      : c.status === 'active'
+                      ? 'Track Delivery & Settlement'
+                      : 'View Payment Receipt'}
+                  </span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>

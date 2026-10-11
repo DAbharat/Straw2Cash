@@ -9,6 +9,7 @@ public class AuthResponse {
     private String name;
     private String role;
     private String region;
+    private String phone;
 
     // getters/setters
     public String getToken() { return token; }
@@ -25,4 +26,6 @@ public class AuthResponse {
     public void setRole(String role) { this.role = role; }
     public String getRegion() { return region; }
     public void setRegion(String region) { this.region = region; }
+    public String getPhone() { return phone; }
+    public void setPhone(String phone) { this.phone = phone; }
 }

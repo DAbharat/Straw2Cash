@@ -41,6 +41,8 @@ func New(cfg Config) *mux.Router {
 
 	userGroup := protected.PathPrefix("/users").Subrouter()
 	userGroup.HandleFunc("/me", cfg.UserHandler.GetMe).Methods(http.MethodGet)
+	userGroup.HandleFunc("/me", cfg.UserHandler.UpdateMe).Methods(http.MethodPut)
+	userGroup.HandleFunc("/profile", cfg.UserHandler.UpdateMe).Methods(http.MethodPut)
 	userGroup.HandleFunc("/{id:[a-zA-Z0-9-]+}", cfg.UserHandler.GetUser).Methods(http.MethodGet)
 
 	farmerGroup := protected.PathPrefix("/farmers").Subrouter()

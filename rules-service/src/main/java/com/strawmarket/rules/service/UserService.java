@@ -63,9 +63,27 @@ public class UserService {
         res.setExpiresInSeconds(jwtService.getExpirationSeconds());
         res.setUserId(user.getUserId());
         res.setName(user.getName());
+        res.setPhone(user.getPhone());
         res.setRole(user.getRole());
         res.setRegion(user.getRegion());
         return res;
+    }
+
+    public UserResponse updateProfile(String userId, com.strawmarket.rules.model.dto.UpdateUserRequest req) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException("User not found: " + userId));
+
+        if (req.getName() != null && !req.getName().isBlank()) {
+            user.setName(req.getName());
+        }
+        if (req.getPhone() != null && !req.getPhone().isBlank()) {
+            user.setPhone(req.getPhone());
+        }
+        if (req.getRegion() != null && !req.getRegion().isBlank()) {
+            user.setRegion(req.getRegion());
+        }
+        userRepository.save(user);
+        return toResponse(user);
     }
 
     public UserResponse getById(String userId) {

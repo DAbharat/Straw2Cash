@@ -29,6 +29,9 @@ func (m *MockUserService) GetUserByPhone(ctx context.Context, phone string) (dto
 func (m *MockUserService) Login(ctx context.Context, phone, password string) (dto.UserResponse, error) {
 	return dto.UserResponse{}, nil
 }
+func (m *MockUserService) UpdateUser(ctx context.Context, id string, req dto.UpdateUserRequest) (dto.UserResponse, error) {
+	return dto.UserResponse{}, nil
+}
 
 // Dummy mocks for others just to prevent panics during handler method binding
 type MockFarmerService struct{ service.FarmerService }

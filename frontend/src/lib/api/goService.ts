@@ -125,11 +125,17 @@ export const goBackendApi = {
 
   mapGoAuthResponse(authData: any, overrides?: Partial<UserProfile>): { user: UserProfile; token: string } {
     const u = authData.user || {};
+    const fallbackPhone = overrides?.phone || (typeof window !== 'undefined' ? localStorage.getItem('s2c_login_phone') : null) || '9000000004';
+    const effectivePhone = u.phone || fallbackPhone;
+    const effectiveEmail = u.email && !u.email.includes('undefined') 
+      ? u.email 
+      : `${effectivePhone}@balers.straw2cash.in`;
+
     const user: UserProfile = {
       id: u.id || `user_baler_${Date.now()}`,
       name: u.name || overrides?.name || 'Baler Operator',
-      email: u.email || `${u.phone}@balers.straw2cash.in`,
-      phone: u.phone,
+      email: effectiveEmail,
+      phone: effectivePhone,
       role: 'baler',
       location: overrides?.location || {
         villageOrCity: 'Baghapurana',
@@ -157,30 +163,111 @@ export const goBackendApi = {
   },
 
   async updateProfile(userId: string, updates: Partial<UserProfile>): Promise<UserProfile> {
-    // Determine endpoint based on role if available
-    const roleStr = updates.role?.toLowerCase() || 'farmer';
+    const existing = users.find((u) => u.id === userId);
+    const roleStr = updates.role?.toLowerCase() || existing?.role?.toLowerCase() || 'farmer';
     let endpoint = `/${roleStr}s/profile`;
     if (roleStr === 'authority') endpoint = ''; // authority not in Go
     
+    // 1. Persist role-specific profile (farmer / buyer / baler) to Go Backend DB
     try {
       if (endpoint) {
-        // Only sending a subset to avoid disallow unknown fields
-        const payload = roleStr === 'farmer' ? {
-           land_area_acres: updates.farmSizeAcres || 0.0
-        } : {};
+        let payload: any = {};
+        if (roleStr === 'farmer') {
+          payload = {
+            land_area_acres: updates.farmSizeAcres !== undefined ? Number(updates.farmSizeAcres) : (existing?.farmSizeAcres || 35),
+            village: updates.location?.villageOrCity || existing?.location?.villageOrCity || 'PB',
+            district: updates.location?.district || existing?.location?.district || 'Sangrur',
+            state: updates.location?.state || existing?.location?.state || 'Punjab',
+          };
+        } else if (roleStr === 'buyer') {
+          payload = {
+            organization_name: updates.organizationName || existing?.organizationName || 'Biomass Plant Co',
+            address: updates.location?.villageOrCity || existing?.location?.villageOrCity || 'Industrial Area',
+            district: updates.location?.district || existing?.location?.district || 'Patiala',
+            state: updates.location?.state || existing?.location?.state || 'Punjab',
+          };
+        } else if (roleStr === 'baler') {
+          payload = {
+            organization_name: updates.organizationName || existing?.organizationName || 'Custom Hiring Center',
+            phone: updates.phone || existing?.phone,
+            district: updates.location?.district || existing?.location?.district || 'Moga',
+            state: updates.location?.state || existing?.location?.state || 'Punjab',
+          };
+        }
         
-        await fetchGo(endpoint, {
-          method: 'PUT',
-          body: JSON.stringify(payload)
-        });
+        try {
+          await fetchGo(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+          });
+        } catch {
+          // If profile doesn't exist yet in PostgreSQL, create it with POST
+          if (roleStr === 'farmer') {
+            await fetchGo(endpoint, {
+              method: 'POST',
+              body: JSON.stringify({
+                ...payload,
+                latitude: 30.2458,
+                longitude: 76.0411,
+              })
+            }).catch(() => {});
+          }
+        }
       }
     } catch(e) {
-      console.warn("Go backend updateProfile failed", e);
+      console.warn("Go backend role profile update warning", e);
+    }
+
+    // 2. Persist core user details (name, email, phone) to Go Backend DB
+    try {
+      await fetchGo('/users/profile', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: updates.name,
+          email: updates.email,
+          phone: updates.phone,
+        })
+      });
+    } catch {
+      try {
+        await fetchGo('/users/me', {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: updates.name,
+            email: updates.email,
+            phone: updates.phone,
+          })
+        });
+      } catch (e) {
+        console.warn("Go backend user update warning", e);
+      }
+    }
+
+    // 3. Persist to Java Rules Engine (DynamoDB users table) if reachable
+    try {
+      const rawBase = import.meta.env.VITE_JAVA_API || 'http://localhost:8080';
+      const javaBaseUrl = rawBase.replace(/\/api\/v1\/health\/?$/, '').replace(/\/health\/?$/, '').replace(/\/$/, '');
+      const token = localStorage.getItem('s2c_auth_token') || localStorage.getItem('straw2cash_token');
+      await fetch(`${javaBaseUrl}/api/v1/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          name: updates.name,
+          phone: updates.phone,
+          region: updates.location?.district || updates.location?.villageOrCity || 'PB'
+        })
+      });
+    } catch {
+      // Ignored if java backend offline
     }
 
     users = users.map((u) => (u.id === userId ? { ...u, ...updates } : u));
     setStored(STORAGE_KEY_USERS, users);
-    return users.find((u) => u.id === userId)!;
+    const updatedUser = users.find((u) => u.id === userId) || ({ ...existing, ...updates, id: userId } as UserProfile);
+    return updatedUser;
   },
 
   // Straw Listings

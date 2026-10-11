@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './lib/context/AuthContext';
+import { AuthProvider, useAuth } from './lib/context/AuthContext';
 import { ToastProvider } from './lib/context/ToastContext';
 import { TopNav } from './components/layout/TopNav';
 import { Footer } from './components/layout/Footer';
+import { AuthMiddleware, GuestRoute, runAuthMiddleware } from './middleware/authMiddleware';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -38,7 +39,9 @@ import { ContractDetailsPage } from './pages/contracts/ContractDetailsPage';
 import { SettlementDetailsPage } from './pages/contracts/SettlementDetailsPage';
 import { ImpactDashboardPage } from './pages/contracts/ImpactDashboardPage';
 
-export default function App() {
+function AppContent() {
+  const { isAuthenticated } = useAuth();
+
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return window.location.pathname || '/';
   });
@@ -59,8 +62,20 @@ export default function App() {
 
   const navigate = (path: string) => {
     const [pathname, search] = path.split('?');
+    const target = pathname || '/';
+
+    // Route Middleware: Prevent authenticated users from visiting guest-only pages
+    const check = runAuthMiddleware(target, isAuthenticated);
+    if (check.shouldRedirect && check.redirectPath) {
+      window.history.pushState({}, '', check.redirectPath);
+      setCurrentPath(check.redirectPath);
+      setQueryParams(new URLSearchParams(''));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     window.history.pushState({}, '', path);
-    setCurrentPath(pathname || '/');
+    setCurrentPath(target);
     setQueryParams(new URLSearchParams(search || ''));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -71,11 +86,19 @@ export default function App() {
     if (currentPath === '/' || currentPath === '') {
       return <LandingPage onNavigate={navigate} />;
     }
-    if (currentPath === '/login') {
-      return <LoginPage onNavigate={navigate} />;
+    if (currentPath === '/login' || currentPath === '/signin' || currentPath === '/sign-in') {
+      return (
+        <GuestRoute onNavigate={navigate}>
+          <LoginPage onNavigate={navigate} />
+        </GuestRoute>
+      );
     }
-    if (currentPath === '/register') {
-      return <RegisterPage onNavigate={navigate} />;
+    if (currentPath === '/register' || currentPath === '/signup' || currentPath === '/sign-up') {
+      return (
+        <GuestRoute onNavigate={navigate}>
+          <RegisterPage onNavigate={navigate} />
+        </GuestRoute>
+      );
     }
     if (currentPath === '/dashboard' || currentPath === '/baler/dashboard') {
       return <DashboardPage onNavigate={navigate} />;
@@ -178,27 +201,36 @@ export default function App() {
   const OTHER_PAGES_BG = 'https://framerusercontent.com/images/qQ7rFB5eVVBjturZ7t2PLrcFLI.jpg?scale-down-to=2048';
 
   return (
+    <div
+      className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#0D1810] text-white selection:bg-[#E5A812]/20 selection:text-[#E5A812] ${
+        !isHome ? 'relative bg-cover bg-top bg-fixed' : ''
+      }`}
+      style={
+        !isHome
+          ? {
+              backgroundImage: `linear-gradient(to bottom, rgba(5, 12, 8, 0.4) 0%, rgba(9, 18, 12, 0.65) 25%, rgba(6, 13, 9, 0.78) 60%, rgba(4, 9, 6, 0.94) 100%), radial-gradient(ellipse at 50% 20%, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.8) 100%), url('${OTHER_PAGES_BG}')`,
+            }
+          : undefined
+      }
+    >
+      {!isHome && <TopNav currentPath={currentPath} onNavigate={navigate} />}
+      <main className={`flex-1 w-full max-w-full relative z-10 bg-transparent ${hasHeroBanner || isHome ? '' : 'pt-24 sm:pt-32'}`}>
+        <AuthMiddleware currentPath={currentPath} onNavigate={navigate}>
+          {renderRoute()}
+        </AuthMiddleware>
+      </main>
+      <Footer onNavigate={navigate} />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
     <AuthProvider>
       <ToastProvider>
-        <div
-          className={`min-h-screen w-full max-w-full overflow-x-hidden flex flex-col bg-[#0D1810] text-white selection:bg-[#E5A812]/20 selection:text-[#E5A812] ${
-            !isHome ? 'relative bg-cover bg-top bg-fixed' : ''
-          }`}
-          style={
-            !isHome
-              ? {
-                  backgroundImage: `linear-gradient(to bottom, rgba(5, 12, 8, 0.4) 0%, rgba(9, 18, 12, 0.65) 25%, rgba(6, 13, 9, 0.78) 60%, rgba(4, 9, 6, 0.94) 100%), radial-gradient(ellipse at 50% 20%, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.8) 100%), url('${OTHER_PAGES_BG}')`,
-                }
-              : undefined
-          }
-        >
-          {!isHome && <TopNav currentPath={currentPath} onNavigate={navigate} />}
-          <main className={`flex-1 w-full max-w-full relative z-10 bg-transparent ${hasHeroBanner || isHome ? '' : 'pt-24 sm:pt-32'}`}>
-            {renderRoute()}
-          </main>
-          <Footer onNavigate={navigate} />
-        </div>
+        <AppContent />
       </ToastProvider>
     </AuthProvider>
   );
 }
+

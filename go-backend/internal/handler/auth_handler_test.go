@@ -35,6 +35,11 @@ func (m *mockUserService) Login(ctx context.Context, phone, password string) (dt
 	return dto.UserResponse{ID: "mock-id"}, nil
 }
 
+func (m *mockUserService) UpdateUser(ctx context.Context, id string, req dto.UpdateUserRequest) (dto.UserResponse, error) {
+	return dto.UserResponse{ID: id}, nil
+}
+
+
 func TestAuthHandler_Login_Success(t *testing.T) {
 	mockSvc := &mockUserService{
 		loginFunc: func(ctx context.Context, phone, password string) (dto.UserResponse, error) {

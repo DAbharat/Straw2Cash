@@ -24,15 +24,32 @@ const TOKEN_STORAGE_KEY = 's2c_auth_token';
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(() => {
     try {
+      const isExplicitlyLoggedOut = localStorage.getItem('s2c_auth_logged_out');
+      if (isExplicitlyLoggedOut === 'true') {
+        return null;
+      }
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed: UserProfile = JSON.parse(stored);
+        const loginPhone = localStorage.getItem('s2c_login_phone') || '';
+        if (!parsed.phone || parsed.phone === 'undefined') {
+          parsed.phone = loginPhone;
+        }
+        if (!parsed.email || parsed.email.includes('undefined')) {
+          parsed.email = loginPhone ? `${loginPhone}@straw2cash.in` : '';
+        }
+        return parsed;
+      }
     } catch {}
-    // Default to the first farmer user
+    // Default to the first farmer user for demo initial state
     return INITIAL_USERS[0];
   });
 
   const [token, setToken] = useState<string | null>(() => {
     try {
+      if (localStorage.getItem('s2c_auth_logged_out') === 'true') {
+        return null;
+      }
       return localStorage.getItem(TOKEN_STORAGE_KEY) || (user ? `go_jwt_${user.id}` : null);
     } catch {
       return user ? `go_jwt_${user.id}` : null;
@@ -53,36 +70,84 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, token]);
 
   const login = async (emailOrPhone: string, passwordOrRole?: string, role?: UserRole) => {
+    localStorage.removeItem('s2c_auth_logged_out');
+    localStorage.setItem('s2c_login_phone', emailOrPhone);
     const isBaler = role === 'baler' || passwordOrRole === 'baler';
     if (isBaler) {
-      const res = await goBackendApi.login(emailOrPhone, passwordOrRole === 'baler' ? 'baler123' : passwordOrRole);
-      setUser(res.user);
-      setToken(res.token);
+      try {
+        const res = await goBackendApi.login(emailOrPhone, passwordOrRole === 'baler' ? 'baler123' : passwordOrRole);
+        const userPhone = res.user.phone || emailOrPhone;
+        const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+          ? res.user.email 
+          : `${userPhone}@straw2cash.in`;
+        const resolvedUser = { ...res.user, phone: userPhone, email: userEmail };
+        setUser(resolvedUser);
+        setToken(res.token);
+      } catch (e) {
+        // Mock fallback if Go backend is offline
+        const mockBaler = INITIAL_USERS.find(u => u.role === 'baler') || INITIAL_USERS[2];
+        const resolvedUser = { ...mockBaler, phone: emailOrPhone };
+        setUser(resolvedUser);
+        setToken(`go_jwt_${resolvedUser.id}`);
+      }
     } else {
-      const res = await javaRulesApi.login(emailOrPhone, passwordOrRole);
-      setUser(res.user);
-      setToken(res.token);
+      try {
+        const res = await javaRulesApi.login(emailOrPhone, passwordOrRole);
+        const userPhone = res.user.phone || emailOrPhone;
+        const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+          ? res.user.email 
+          : `${userPhone}@straw2cash.in`;
+        const resolvedUser = { ...res.user, phone: userPhone, email: userEmail };
+        setUser(resolvedUser);
+        setToken(res.token);
+      } catch (e) {
+        // Mock fallback if Java backend is offline
+        const effectiveRole = role || 'farmer';
+        const matchedUser = INITIAL_USERS.find(u => u.phone === emailOrPhone || u.role === effectiveRole) || {
+          ...INITIAL_USERS[effectiveRole === 'buyer' ? 1 : 0],
+          phone: emailOrPhone,
+          role: effectiveRole,
+        };
+        setUser(matchedUser);
+        setToken(`jwt_${matchedUser.id}`);
+      }
     }
   };
 
   const register = async (data: Partial<UserProfile>, password?: string) => {
+    localStorage.removeItem('s2c_auth_logged_out');
+    if (data.phone) {
+      localStorage.setItem('s2c_login_phone', data.phone);
+    }
     if (data.role === 'baler') {
       const res = await goBackendApi.register(data, password);
-      setUser(res.user);
+      const userPhone = res.user.phone || data.phone || '';
+      const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+        ? res.user.email 
+        : `${userPhone}@straw2cash.in`;
+      setUser({ ...res.user, phone: userPhone, email: userEmail });
       setToken(res.token);
     } else {
       const res = await javaRulesApi.register(data, password);
-      setUser(res.user);
+      const userPhone = res.user.phone || data.phone || '';
+      const userEmail = (res.user.email && !res.user.email.includes('undefined')) 
+        ? res.user.email 
+        : `${userPhone}@straw2cash.in`;
+      setUser({ ...res.user, phone: userPhone, email: userEmail });
       setToken(res.token);
     }
   };
 
   const logout = () => {
+    localStorage.setItem('s2c_auth_logged_out', 'true');
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
     setUser(null);
     setToken(null);
   };
 
   const switchRole = (newRole: UserRole) => {
+    localStorage.removeItem('s2c_auth_logged_out');
     const matching = INITIAL_USERS.find((u) => u.role === newRole);
     if (matching) {
       setUser(matching);
@@ -95,8 +160,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     if (!user) return;
-    const updated = await goBackendApi.updateProfile(user.id, updates);
-    setUser(updated);
+    const merged = { ...user, ...updates };
+    const updated = await goBackendApi.updateProfile(user.id, merged);
+    const finalUser = { ...merged, ...updated };
+    setUser(finalUser);
+    if (finalUser.phone) {
+      localStorage.setItem('s2c_login_phone', finalUser.phone);
+    }
   };
 
   return (

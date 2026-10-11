@@ -16,6 +16,7 @@ type UserService interface {
 	GetUser(ctx context.Context, id string) (dto.UserResponse, error)
 	GetUserByPhone(ctx context.Context, phone string) (dto.UserResponse, error)
 	Login(ctx context.Context, phone, password string) (dto.UserResponse, error)
+	UpdateUser(ctx context.Context, id string, req dto.UpdateUserRequest) (dto.UserResponse, error)
 }
 
 type userService struct {
@@ -89,6 +90,37 @@ func (s *userService) Login(ctx context.Context, phone, password string) (dto.Us
 
 	return mapUserResponse(user), nil
 }
+
+func (s *userService) UpdateUser(ctx context.Context, id string, req dto.UpdateUserRequest) (dto.UserResponse, error) {
+	currentUser, err := s.userRepo.GetUserByID(ctx, id)
+	if err != nil {
+		if errorsIsNotFound(err) {
+			return dto.UserResponse{}, ErrNotFound
+		}
+		return dto.UserResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	name := currentUser.Name
+	if req.Name != "" {
+		name = req.Name
+	}
+	email := currentUser.Email.String
+	if req.Email != "" {
+		email = req.Email
+	}
+	phone := currentUser.Phone
+	if req.Phone != "" {
+		phone = req.Phone
+	}
+
+	updated, err := s.userRepo.UpdateUser(ctx, id, name, email, phone, currentUser.PasswordHash, string(currentUser.Role))
+	if err != nil {
+		return dto.UserResponse{}, fmt.Errorf("%w: %v", ErrInternal, err)
+	}
+
+	return mapUserResponse(updated), nil
+}
+
 
 func mapUserResponse(user sqlc.User) dto.UserResponse {
 	return dto.UserResponse{
