@@ -36,79 +36,79 @@ Straw2Cash is engineered as a polyglot distributed system where each service own
 
 ```mermaid
 flowchart TB
-    subgraph Clients["User Tier (Frontend & Clients)"]
-        Farmer["Farmer\n(Mobile/Web)"]
-        Buyer["Industrial Buyer\n(Power/Kiln/Mill/Feed)"]
-        Baler["Baler Operator\n(Custom Hiring)"]
-        Authority["Pollution Authority\n(State Board)"]
-        WebUI["React 19 + TypeScript SPA\n(Vite 8, Tailwind CSS v4, Maps)\nPort 5173 / 3000"]
+    subgraph Clients["User Tier (Frontend and Clients)"]
+        Farmer["Farmer<br/>(Mobile / Web)"]
+        Buyer["Industrial Buyer<br/>(Power / Kiln / Mill / Feed)"]
+        Baler["Baler Operator<br/>(Custom Hiring)"]
+        Authority["Pollution Authority<br/>(State Board)"]
+        WebUI["React 19 + TypeScript SPA<br/>(Vite 8, Tailwind CSS v4, Maps)<br/>Port 5173 / 3000"]
     end
 
-    Farmer -->|HTTP / JWT| WebUI
-    Buyer -->|HTTP / JWT| WebUI
-    Baler -->|HTTP / JWT| WebUI
-    Authority -->|HTTP / JWT| WebUI
+    Farmer -->|"HTTP / JWT"| WebUI
+    Buyer -->|"HTTP / JWT"| WebUI
+    Baler -->|"HTTP / JWT"| WebUI
+    Authority -->|"HTTP / JWT"| WebUI
 
-    subgraph AWS_Cloud["AWS Cloud & Managed Infrastructure Boundary"]
+    subgraph AWS_Cloud["AWS Cloud and Managed Infrastructure Boundary"]
         subgraph Java_Rules["Java Rules Service (Member 2) — Port 8080"]
-            SpringBoot["Spring Boot 3.4.1 (Java 21)\nSecurity 6.4 + JJWT 0.12.6"]
-            PricingEng["Pricing Engine\n(Table-Driven Matrix)"]
-            ContractSM["Contract State Machine\n(Dual Digital Signatures)"]
-            SettlementEng["Escrow Settlement Engine\n(3-Way Simulated Split)"]
-            ImpactEng["Impact Analytics\n(IPCC / ICAR CO₂e Avoided)"]
+            SpringBoot["Spring Boot 3.4.1 (Java 21)<br/>Security 6.4 + JJWT 0.12.6"]
+            PricingEng["Pricing Engine<br/>(Table-Driven Matrix)"]
+            ContractSM["Contract State Machine<br/>(Dual Digital Signatures)"]
+            SettlementEng["Escrow Settlement Engine<br/>(3-Way Simulated Split)"]
+            ImpactEng["Impact Analytics<br/>(IPCC / ICAR CO2e Avoided)"]
         end
 
-        subgraph AWS_Storage["AWS Storage & Analytics"]
-            DynamoDB[("Amazon DynamoDB\n• price_rules\n• quotes\n• contracts (GSI: farmerId)\n• settlements (GSI: contractId)\n• users (GSI: phone)")]
-            S3["Amazon S3\n(Contracts Bucket - Configured)"]
-            SNS["Amazon SNS\n(Contract Events - Configured)"]
+        subgraph AWS_Storage["AWS Storage and Analytics"]
+            DynamoDB[("Amazon DynamoDB<br/>5 Provisioned Tables<br/>price_rules, quotes, contracts,<br/>settlements, users")]
+            S3["Amazon S3<br/>(Contracts Bucket - Configured)"]
+            SNS["Amazon SNS<br/>(Contract Events - Configured)"]
         end
 
-        subgraph AWS_AI["AWS AI & Foundation Models"]
-            Bedrock["Amazon Bedrock\nClaude 3 Haiku (Configured)\nap-south-1 Mumbai"]
-            Transcribe["Amazon Transcribe\n(Speech-to-Text — Planned)"]
-            Polly["Amazon Polly\n(Text-to-Speech — Planned)"]
+        subgraph AWS_AI["AWS AI and Foundation Models"]
+            Bedrock["Amazon Bedrock<br/>Claude 3 Haiku (Configured)<br/>ap-south-1 Mumbai"]
+            Transcribe["Amazon Transcribe<br/>(Speech-to-Text — Planned)"]
+            Polly["Amazon Polly<br/>(Text-to-Speech — Planned)"]
         end
     end
 
     subgraph Core_Marketplace["Go Marketplace Backend (Member 1 — Bharat) — Port 8000 / 9000"]
-        GoServer["Go HTTP Server (Gorilla Mux)\nLayered Architecture"]
-        MatchingEng["Matching Engine\n(Proximity & Grade Scoring)"]
-        ListingSvc["Listing & Profile Management\n(Farmer, Buyer, Baler)"]
-        CedarEngine["Cedar Policy Engine (cedar-go v1.8.0)\nFine-Grained ABAC / RBAC Authorization"]
-        PostgresDB[("PostgreSQL 17 (pgxpool + sqlc)\n• users\n• farmer_profiles\n• buyer_profiles\n• baler_profiles\n• straw_listings\n• buyer_requirements\n• matches")]
+        GoServer["Go HTTP Server (Gorilla Mux)<br/>Layered Architecture"]
+        MatchingEng["Matching Engine<br/>(Proximity and Grade Scoring)"]
+        ListingSvc["Listing and Profile Management<br/>(Farmer, Buyer, Baler)"]
+        CedarEngine["Cedar Policy Engine (cedar-go v1.8.0)<br/>Fine-Grained ABAC / RBAC Authorization"]
+        PostgresDB[("PostgreSQL 17 (pgxpool + sqlc)<br/>7 Relational Tables")]
     end
 
     subgraph Python_Intelligence["Python AI/ML Service (Member 3) — Port 8001"]
-        FastAPI["FastAPI 0.110 (Uvicorn)\nPydantic v2 Settings"]
-        ResidueCalc["Agronomic Residue Estimator\n(ICAR / PAU / TIFAC Coefficients)"]
-        FirmsClient["NASA FIRMS Ingestion Engine\n(VIIRS NOAA-20 / SNPP Active Fires)"]
-        BurnRisk["Geospatial Burn-Risk Scoring\n(GeoJSON FeatureCollection)"]
-        StrandsAssistant["Multilingual Strands Agent\n(Hindi / Punjabi / English Tools)"]
-        BrowserSpeech["Client-Side Web Speech API\n(Synthesis & Recognition Fallback)"]
+        FastAPI["FastAPI 0.110 (Uvicorn)<br/>Pydantic v2 Settings"]
+        ResidueCalc["Agronomic Residue Estimator<br/>(ICAR / PAU / TIFAC Coefficients)"]
+        FirmsClient["NASA FIRMS Ingestion Engine<br/>(VIIRS NOAA-20 / SNPP Active Fires)"]
+        BurnRisk["Geospatial Burn-Risk Scoring<br/>(GeoJSON FeatureCollection)"]
+        StrandsAssistant["Multilingual Strands Agent<br/>(Hindi / Punjabi / English Tools)"]
+        BrowserSpeech["Client-Side Web Speech API<br/>(Synthesis and Recognition Fallback)"]
     end
 
     %% Client Interactions
-    WebUI -->|1. Auth & Registration (JWT)| SpringBoot
-    WebUI -->|2. Listings, Profiles, Matches| GoServer
-    WebUI -->|3. Residue Calc, Hotspots, Assistant| FastAPI
-    WebUI -->|4. Quotes, Contracts, Settlements| SpringBoot
+    WebUI -->|"1. Auth and Registration (JWT)"| SpringBoot
+    WebUI -->|"2. Listings, Profiles, Matches"| GoServer
+    WebUI -->|"3. Residue Calc, Hotspots, Assistant"| FastAPI
+    WebUI -->|"4. Quotes, Contracts, Settlements"| SpringBoot
 
-    %% Service Boundaries & Data Storage
-    SpringBoot -->|Enhanced Client SDK v2| DynamoDB
-    SpringBoot -.->|Event Notification| SNS
-    SpringBoot -.->|PDF Storage| S3
-    GoServer -->|Queries / Transactions| PostgresDB
-    GoServer -->|Evaluates Policies| CedarEngine
-    FastAPI -->|Boto3 InvokeModel| Bedrock
-    FastAPI -->|HTTPS Satellite Feed| FirmsClient
-    FastAPI -.->|Indicative Price Sync| SpringBoot
-    FastAPI -.->|Requirement Volume Sync| GoServer
+    %% Service Boundaries and Data Storage
+    SpringBoot -->|"Enhanced Client SDK v2"| DynamoDB
+    SpringBoot -.->|"Event Notification"| SNS
+    SpringBoot -.->|"PDF Storage"| S3
+    GoServer -->|"Queries / Transactions"| PostgresDB
+    GoServer -->|"Evaluates Policies"| CedarEngine
+    FastAPI -->|"Boto3 InvokeModel"| Bedrock
+    FastAPI -->|"HTTPS Satellite Feed"| FirmsClient
+    FastAPI -.->|"Indicative Price Sync"| SpringBoot
+    FastAPI -.->|"Requirement Volume Sync"| GoServer
 
     %% Voice Fallback
-    WebUI -.->|Speech Synthesis & STT| BrowserSpeech
-    BrowserSpeech -.->|Planned AWS Migration| Transcribe
-    BrowserSpeech -.->|Planned AWS Migration| Polly
+    WebUI -.->|"Speech Synthesis and STT"| BrowserSpeech
+    BrowserSpeech -.->|"Planned AWS Migration"| Transcribe
+    BrowserSpeech -.->|"Planned AWS Migration"| Polly
 ```
 
 ---
@@ -243,7 +243,7 @@ erDiagram
 
     farmer_profiles {
         uuid id PK
-        uuid user_id FK "REFERENCES users(id)"
+        uuid user_id FK
         varchar village
         varchar district
         varchar state
@@ -256,7 +256,7 @@ erDiagram
 
     buyer_profiles {
         uuid id PK
-        uuid user_id FK "REFERENCES users(id)"
+        uuid user_id FK
         varchar organization_name
         buyer_type buyer_type
         text address
@@ -270,7 +270,7 @@ erDiagram
 
     baler_profiles {
         uuid id PK
-        uuid user_id FK "REFERENCES users(id)"
+        uuid user_id FK
         varchar organization_name
         varchar phone
         text vehicle_details
@@ -283,7 +283,7 @@ erDiagram
 
     straw_listings {
         uuid id PK
-        uuid farmer_id FK "REFERENCES farmer_profiles(id)"
+        uuid farmer_id FK
         varchar crop_type
         decimal quantity_kg
         decimal price_per_kg
@@ -300,7 +300,7 @@ erDiagram
 
     buyer_requirements {
         uuid id PK
-        uuid buyer_id FK "REFERENCES buyer_profiles(id)"
+        uuid buyer_id FK
         varchar crop_type
         decimal quantity_required_kg
         decimal remaining_quantity_kg
@@ -315,9 +315,9 @@ erDiagram
 
     matches {
         uuid id PK
-        uuid listing_id FK "REFERENCES straw_listings(id)"
-        uuid requirement_id FK "REFERENCES buyer_requirements(id)"
-        uuid baler_id FK "REFERENCES baler_profiles(id) [NULLABLE]"
+        uuid listing_id FK
+        uuid requirement_id FK
+        uuid baler_id FK
         decimal matched_quantity_kg
         decimal agreed_price_per_kg
         decimal match_score
@@ -375,20 +375,20 @@ sequenceDiagram
     participant Dynamo as DynamoDB
     participant Go as Go Marketplace (Port 8000)
 
-    Farmer->>UI: Enter Phone (9000000001) & Password
-    UI->>Java: POST /api/v1/auth/login {"phone", "password"}
+    Farmer->>UI: Enter Phone (9000000001) and Password
+    UI->>Java: POST /api/v1/auth/login
     Java->>Dynamo: Query users table via phone-index GSI
     Dynamo-->>Java: UserEntity (BCrypt hash, Role=FARMER, Region=PB)
     Java->>Java: Verify BCrypt password hash
     Java->>Java: Sign JWT (sub=U-xxx, role=FARMER, region=PB, exp=24h)
-    Java-->>UI: 200 OK {token: "eyJhbG...", role: "FARMER", userId: "U-xxx"}
-    UI->>UI: Store token in localStorage ('straw2cash_token')
+    Java-->>UI: 200 OK (JWT Token, Role=FARMER, UserId=U-xxx)
+    UI->>UI: Store token in localStorage (straw2cash_token)
 
     Note over UI,Go: Subsequent Call to Go Core Marketplace
-    UI->>Go: POST /api/v1/listings [Authorization: Bearer eyJhbG...]
+    UI->>Go: POST /api/v1/listings (with Bearer JWT)
     Go->>Go: JwtAuthMiddleware parses token with shared JWT_SECRET
     Go->>Go: Cedar Authorizer evaluates (User, CreateListing, Listing)
-    Go-->>UI: 201 Created {id: "uuid-listing", status: "AVAILABLE"}
+    Go-->>UI: 201 Created (id=uuid-listing, status=AVAILABLE)
 ```
 
 ---
@@ -407,38 +407,38 @@ sequenceDiagram
     participant Java as Java Rules (Port 8080)
 
     Farmer->>UI: Input Field Area (5 Acres)
-    UI->>Python: POST /api/v1/residue/estimate {area: 5.0, unit: "acres"}
-    Python-->>UI: 200 OK {recoverable_tonnes: 12.04, estimated_bales: 27}
+    UI->>Python: POST /api/v1/residue/estimate (area=5.0, unit=acres)
+    Python-->>UI: 200 OK (recoverable=12.04 tonnes, bales=27)
 
     Farmer->>UI: Confirm Listing with Coordinates
-    UI->>Go: POST /api/v1/listings {quantity_kg: 12040, price_per_kg: 2.5, ...}
+    UI->>Go: POST /api/v1/listings (quantity=12040 kg, price=2.5)
     Go-->>UI: 201 Created (Listing AVAILABLE)
 
     Buyer->>UI: Submit Industrial Requirement
-    UI->>Go: POST /api/v1/requirements {quantity_required_kg: 20000, ...}
+    UI->>Go: POST /api/v1/requirements (quantity=20000 kg)
     Go-->>UI: 201 Created (Requirement OPEN)
 
     Go->>Go: Matching Engine computes pairing (Distance, Grade, Capacity)
-    Go->>UI: Match Proposed (Match ID: M-101)
+    Go->>UI: Match Proposed (Match ID M-101)
 
-    Note over UI,Java: Binding Price Quote & Contract Generation
-    UI->>Java: POST /api/v1/pricing/quote {buyerType: "BIOMASS_POWER_PLANT", tonnes: 12.04, distKm: 40}
-    Java-->>UI: 200 OK Quote {quoteId: "Q-99", pricePerTonne: 2500, netToFarmer: 30100, buyerPays: 53578}
+    Note over UI,Java: Binding Price Quote and Contract Generation
+    UI->>Java: POST /api/v1/pricing/quote (buyerType=BIOMASS, tonnes=12.04)
+    Java-->>UI: 200 OK Quote (quoteId=Q-99, price=2500, netToFarmer=30100)
 
-    UI->>Java: POST /api/v1/contracts {quoteId: "Q-99", deliveryBy: "2026-11-15"}
+    UI->>Java: POST /api/v1/contracts (quoteId=Q-99)
     Java-->>UI: 201 Created Contract (Status: PENDING_FARMER_SIGNATURE)
 
-    Farmer->>UI: Click "Sign Contract"
-    UI->>Java: POST /api/v1/contracts/{id}/sign {signer: "FARMER"}
+    Farmer->>UI: Sign Contract
+    UI->>Java: POST /api/v1/contracts/id/sign (signer=FARMER)
     Java-->>UI: 200 OK Contract (Status: PENDING_BUYER_SIGNATURE)
 
-    Buyer->>UI: Click "Accept & Sign Contract"
-    UI->>Java: POST /api/v1/contracts/{id}/sign {signer: "BUYER"}
+    Buyer->>UI: Accept and Sign Contract
+    UI->>Java: POST /api/v1/contracts/id/sign (signer=BUYER)
     Java-->>UI: 200 OK Contract (Status: ACTIVE)
 
     Buyer->>UI: Authorize Settlement upon Delivery
-    UI->>Java: POST /api/v1/settlements {contractId: "C-xxx"}
-    Java->>Java: Execute 3-way split (Farmer: ₹30,100, Transport: ₹21,672, Platform: ₹1,806)
+    UI->>Java: POST /api/v1/settlements (contractId=C-xxx)
+    Java->>Java: Execute 3-way split (Farmer, Transporter, Platform)
     Java-->>UI: 200 OK Settlement COMPLETED (Simulated Escrow)
 ```
 
@@ -457,14 +457,14 @@ sequenceDiagram
     participant Bedrock as Amazon Bedrock (Claude 3)
     participant NASA as NASA FIRMS VIIRS
 
-    Farmer->>Browser: Speaks query: "ਮੇਰੇ ਕੋਲ 5 ਕਿੱਲੇ ਝੋਨਾ ਹੈ, ਕਿੰਨੀ ਪਰਾਲੀ ਹੋਵੇਗੀ?"
-    Browser->>UI: Transcribed text (Punjabi Gurmukhi)
-    UI->>Python: POST /api/v1/assistant/chat {message: "...", language: "pa"}
+    Farmer->>Browser: Speaks Punjabi query (5 killa paddy straw)
+    Browser->>UI: Transcribed text
+    UI->>Python: POST /api/v1/assistant/chat (message, language=pa)
     
-    Python->>Python: Strands Agent inspects intent & triggers ToolCall
-    Python->>Python: Execute tool: estimate_residue(area=5.0, unit="killa")
+    Python->>Python: Strands Agent inspects intent and triggers ToolCall
+    Python->>Python: Execute tool estimate_residue(area=5.0, unit=killa)
     Python->>NASA: Check cached VIIRS thermal hotspots for Punjab
-    NASA-->>Python: Thermal coordinates & FRP values
+    NASA-->>Python: Thermal coordinates and FRP values
 
     alt Amazon Bedrock Configured
         Python->>Bedrock: InvokeModel (Claude 3 Haiku) with localized tool context
@@ -473,7 +473,7 @@ sequenceDiagram
         Python->>Python: Deterministic agronomic mock engine generates response
     end
 
-    Python-->>UI: 200 OK {reply: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ... 12.04 ਟਨ ਪਰਾਲੀ...", tools_called: [...]}
+    Python-->>UI: 200 OK (Punjabi reply and tool summary)
     UI->>Browser: Speaks response via window.speechSynthesis
     Browser-->>Farmer: Audio playback in Punjabi
 ```
